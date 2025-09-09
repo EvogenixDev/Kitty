@@ -1,7 +1,9 @@
 package ru.kitty.parser
 
+import ru.kitty.parser.ast.BinaryExpression
 import ru.kitty.parser.ast.Expression
 import ru.kitty.parser.ast.NumberExpression
+import ru.kitty.parser.ast.UnaryExpression
 
 class Parser(private val tokens: List<Token>) {
     private val size = tokens.size
@@ -24,11 +26,72 @@ class Parser(private val tokens: List<Token>) {
 
 
     private fun parseExpression(): Expression {
+        return parseAddition()
+    }
+
+
+    private fun parseAddition(): Expression {
+        var result = parseMultiplication()
+
+        while (true) {
+            if (match(Type.PLUS)) {
+                result = BinaryExpression("+", result, parseMultiplication())
+                continue
+            }
+
+            if (match(Type.MINUS)) {
+                result = BinaryExpression("-", result, parseMultiplication())
+                continue
+            }
+
+            break
+        }
+
+        return result
+    }
+
+
+    private fun parseMultiplication(): Expression {
+        var result = parseUnary()
+
+        while (true) {
+            if (match(Type.STAR)) {
+                result = BinaryExpression("*", result, parseUnary())
+                continue
+            }
+
+            if (match(Type.SLASH)) {
+                result = BinaryExpression("/", result, parseUnary())
+                continue
+            }
+
+            break
+        }
+
+        return result
+    }
+
+
+    private fun parseUnary(): Expression {
+        if (match(Type.MINUS)) {
+            return UnaryExpression("-", parsePrimary())
+        }
+
+        if (match(Type.PLUS)) {
+            return parsePrimary()
+        }
+
         return parsePrimary()
     }
 
 
     private fun parsePrimary(): Expression {
+        if (match(Type.L_PAREN)) {
+            val result = parseExpression()
+            consume(Type.R_PAREN)
+            return result
+        }
+
         if (lookMatch(0, Type.NUMBER)) {
             return NumberExpression(consume(Type.NUMBER).text.toInt())
         }
