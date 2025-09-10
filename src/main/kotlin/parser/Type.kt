@@ -10,6 +10,10 @@ enum class Type {
     ELSE,
     ECHO,
     VAR,
+    FOR,
+    WHILE,
+    BREAK,
+    CONTINUE,
 
     PLUS,
     MINUS,
@@ -30,6 +34,8 @@ enum class Type {
     R_PAREN,
     L_BRACE,
     R_BRACE,
+
+    COMMA,
 
     EOF
 }

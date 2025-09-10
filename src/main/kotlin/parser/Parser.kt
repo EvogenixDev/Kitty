@@ -3,8 +3,11 @@ package ru.kitty.parser
 import ru.kitty.parser.ast.AssignmentStatement
 import ru.kitty.parser.ast.BinaryExpression
 import ru.kitty.parser.ast.BlockStatement
+import ru.kitty.parser.ast.BreakStatement
 import ru.kitty.parser.ast.ConditionalExpression
+import ru.kitty.parser.ast.ContinueStatement
 import ru.kitty.parser.ast.Expression
+import ru.kitty.parser.ast.ForStatement
 import ru.kitty.parser.ast.IfStatement
 import ru.kitty.parser.ast.PrintlnStatement
 import ru.kitty.parser.ast.Statement
@@ -12,6 +15,7 @@ import ru.kitty.parser.ast.ValueExpression
 import ru.kitty.parser.ast.UnaryExpression
 import ru.kitty.parser.ast.VariableDeclarationStatement
 import ru.kitty.parser.ast.VariableExpression
+import ru.kitty.parser.ast.WhileStatement
 
 class Parser(private val tokens: List<Token>) {
     private val size = tokens.size
@@ -58,10 +62,24 @@ class Parser(private val tokens: List<Token>) {
             return PrintlnStatement(parseExpression())
         }
 
+        if (match(Type.FOR)) {
+            return parseForStatement()
+        }
+
+        if (match(Type.WHILE)) {
+            return parseWhileStatement()
+        }
+
         if (match(Type.VAR)) {
-            val name = consume(Type.WORD).text
-            consume(Type.EQ)
-            return VariableDeclarationStatement(name, parseExpression())
+            return parseVariableDeclaration()
+        }
+
+        if (match(Type.BREAK)) {
+            return BreakStatement()
+        }
+
+        if (match(Type.CONTINUE)) {
+            return ContinueStatement()
         }
 
         return parseAssignment()
@@ -79,6 +97,13 @@ class Parser(private val tokens: List<Token>) {
     }
 
 
+    private fun parseVariableDeclaration(): Statement {
+        val name = consume(Type.WORD).text
+        consume(Type.EQ)
+        return VariableDeclarationStatement(name, parseExpression())
+    }
+
+
     private fun parseIfStatement(): Statement {
         val condition = parseExpression()
         val ifStatement = parseStatementOrBlock()
@@ -88,6 +113,30 @@ class Parser(private val tokens: List<Token>) {
         }
 
         return IfStatement(condition, ifStatement, elseStatement)
+    }
+
+
+    private fun parseForStatement(): Statement {
+        val initialization = when (match(Type.VAR)) {
+            true -> parseVariableDeclaration()
+            else -> parseAssignment()
+        }
+
+        consume(Type.COMMA)
+
+        val condition = parseExpression()
+        consume(Type.COMMA)
+
+        val increment = parseAssignment()
+        val statement = parseStatementOrBlock()
+        return ForStatement(initialization, condition, increment, statement)
+    }
+
+
+    private fun parseWhileStatement(): Statement {
+        val condition = parseExpression()
+        val statement = parseStatementOrBlock()
+        return WhileStatement(condition, statement)
     }
 
 

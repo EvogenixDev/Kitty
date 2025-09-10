@@ -7,7 +7,7 @@ class Lexer(private val input: String) {
 
 
     companion object {
-        private const val OPERATOR_CHARS = "+-*/<>!=(){}"
+        private const val OPERATOR_CHARS = "+-*/<>!=(){},"
         private val OPERATORS = mapOf<String, Type>(
             "+" to Type.PLUS,
             "-" to Type.MINUS,
@@ -22,7 +22,8 @@ class Lexer(private val input: String) {
             ">" to Type.GT,
             "<=" to Type.LT_EQ,
             ">=" to Type.GT_EQ,
-            "==" to Type.EQ_EQ
+            "==" to Type.EQ_EQ,
+            "," to Type.COMMA,
         )
 
         private val KEYWORDS = mapOf<String, Type>(
@@ -32,6 +33,10 @@ class Lexer(private val input: String) {
             "else" to Type.ELSE,
             "echo" to Type.ECHO,
             "var" to Type.VAR,
+            "for" to Type.FOR,
+            "while" to Type.WHILE,
+            "break" to Type.BREAK,
+            "continue" to Type.CONTINUE,
         )
     }
 
