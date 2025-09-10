@@ -17,7 +17,7 @@ object ScopeHandler {
     }
 
     fun hasVariable(name: String): Boolean {
-        return scope.hasVariable(name)
+        return rootScope.hasVariable(name)
     }
 
     fun declareVariableInCurrentScope(name: String, value: Value) {
@@ -50,7 +50,7 @@ object ScopeHandler {
                 return Scope.FindData(current, true)
             }
 
-            current = current.parent!!
+            current = current.parent?: rootScope
         }
         while (current.parent != null)
 

@@ -1,5 +1,6 @@
 package ru.kitty.parser
 
+import ru.kitty.parser.ast.AssignmentStatement
 import ru.kitty.parser.ast.BinaryExpression
 import ru.kitty.parser.ast.BlockStatement
 import ru.kitty.parser.ast.ConditionalExpression
@@ -61,6 +62,17 @@ class Parser(private val tokens: List<Token>) {
             val name = consume(Type.WORD).text
             consume(Type.EQ)
             return VariableDeclarationStatement(name, parseExpression())
+        }
+
+        return parseAssignment()
+    }
+
+
+    private fun parseAssignment(): Statement {
+        if (lookMatch(0, Type.WORD)) {
+            val variable = consume(Type.WORD).text
+            consume(Type.EQ)
+            return AssignmentStatement(variable, parseExpression())
         }
 
         throw RuntimeException("Unknown statement")
