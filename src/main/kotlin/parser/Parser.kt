@@ -1,6 +1,7 @@
 package ru.kitty.parser
 
 import ru.kitty.parser.ast.BinaryExpression
+import ru.kitty.parser.ast.ConditionalExpression
 import ru.kitty.parser.ast.Expression
 import ru.kitty.parser.ast.ValueExpression
 import ru.kitty.parser.ast.UnaryExpression
@@ -26,7 +27,91 @@ class Parser(private val tokens: List<Token>) {
 
 
     private fun parseExpression(): Expression {
-        return parseAddition()
+        return parseLogicalOr()
+    }
+
+
+    private fun parseLogicalOr(): Expression {
+        var result = parseLogicalAnd()
+
+        while (true) {
+            if (match(Type.OR)) {
+                result = ConditionalExpression("or", result, parseLogicalAnd())
+                continue
+            }
+
+            break
+        }
+
+        return result
+    }
+
+
+    private fun parseLogicalAnd(): Expression {
+        var result = parseEquality()
+
+        while (true) {
+            if (match(Type.AND)) {
+                result = ConditionalExpression("and", result, parseEquality())
+                continue
+            }
+
+            break
+        }
+
+        return result
+    }
+
+
+    private fun parseEquality(): Expression {
+        var result = parseCondition()
+
+        while (true) {
+            if (match(Type.EQ_EQ)) {
+                result = ConditionalExpression("==", result, parseCondition())
+                continue
+            }
+
+            if (match(Type.NOT_EQ)) {
+                result = ConditionalExpression("!=", result, parseCondition())
+                continue
+            }
+
+            break
+        }
+
+        return result
+    }
+
+
+    private fun parseCondition(): Expression {
+        var result = parseAddition()
+
+        while (true) {
+            if (match(Type.LT)) {
+                result = ConditionalExpression("<", result, parseAddition())
+                continue
+            }
+
+            if (match(Type.GT)) {
+                result = ConditionalExpression(">", result, parseAddition())
+                continue
+            }
+
+            if (match(Type.LT_EQ)) {
+                result = ConditionalExpression("<=", result, parseAddition())
+                continue
+            }
+
+            if (match(Type.GT_EQ)) {
+                result = ConditionalExpression(">=", result, parseAddition())
+                continue
+            }
+
+            break
+        }
+
+        return result
     }
 
 
@@ -94,6 +179,10 @@ class Parser(private val tokens: List<Token>) {
 
         if (lookMatch(0, Type.NUMBER)) {
             return ValueExpression(consume(Type.NUMBER).text.toInt())
+        }
+
+        if (lookMatch(0, Type.NUMBER_DECIMAL)) {
+            return ValueExpression(consume(Type.NUMBER_DECIMAL).text.toDouble())
         }
 
         throw RuntimeException("Unknown expression ${get(0)}")

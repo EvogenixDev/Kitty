@@ -7,7 +7,7 @@ class Lexer(private val input: String) {
 
 
     companion object {
-        private const val OPERATOR_CHARS = "+-*/()"
+        private const val OPERATOR_CHARS = "+-*/<>!=()"
         private val OPERATORS = mapOf<String, Type>(
             "+" to Type.PLUS,
             "-" to Type.MINUS,
@@ -15,6 +15,16 @@ class Lexer(private val input: String) {
             "/" to Type.SLASH,
             "(" to Type.L_PAREN,
             ")" to Type.R_PAREN,
+            "<" to Type.LT,
+            ">" to Type.GT,
+            "<=" to Type.LT_EQ,
+            ">=" to Type.GT_EQ,
+            "==" to Type.EQ_EQ
+        )
+
+        private val KEYWORDS = mapOf<String, Type>(
+            "and" to Type.AND,
+            "or" to Type.OR
         )
     }
 
@@ -25,6 +35,7 @@ class Lexer(private val input: String) {
             when {
                 isNumber(current) -> tokenizeNumber()
                 isOperator(current) -> tokenizeOperator()
+                current.isLetter() || current == '_' -> tokenizeWord()
                 else -> skipChar()
             }
         }
@@ -36,8 +47,20 @@ class Lexer(private val input: String) {
     private fun tokenizeNumber() {
         var current = peekChar(0)
         val buffer = StringBuilder()
+        var hasDot = false
 
         while (true) {
+            if (current == '.') {
+                if (hasDot) {
+                    throw RuntimeException("Invalid double number. Multiple dots")
+                }
+
+                hasDot = true
+                buffer.append(current)
+                current = nextChar()
+                continue
+            }
+
             if (!isNumber(current)) {
                 break
             }
@@ -46,7 +69,30 @@ class Lexer(private val input: String) {
             current = nextChar()
         }
 
-        addToken(Type.NUMBER, buffer.toString())
+        val text = buffer.toString()
+        if (text.endsWith(".")) {
+            throw RuntimeException("Invalid double number. Ends with dot")
+        }
+
+        addToken(if (hasDot) Type.NUMBER_DECIMAL else Type.NUMBER, text)
+    }
+
+
+    private fun tokenizeWord() {
+        var current = peekChar(0)
+        val buffer = StringBuilder()
+
+        while (current.isLetterOrDigit() || current == '_') {
+            buffer.append(current)
+            current = nextChar()
+        }
+
+        val text = buffer.toString()
+        if (isKeyword(text)) {
+            addToken(KEYWORDS[text]!!)
+        } else {
+            addToken(Type.WORD, text)
+        }
     }
 
 
@@ -69,6 +115,11 @@ class Lexer(private val input: String) {
 
     private fun isNumber(char: Char): Boolean {
         return char in '0'..'9'
+    }
+
+
+    private fun isKeyword(text: String): Boolean {
+        return text in KEYWORDS
     }
 
 

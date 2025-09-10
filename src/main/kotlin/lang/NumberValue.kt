@@ -10,7 +10,7 @@ class NumberValue(private val value: Number): Value {
             return NumberValue(num)
         }
 
-        fun of(num: Float): NumberValue {
+        fun of(num: Double): NumberValue {
             return NumberValue(num)
         }
 

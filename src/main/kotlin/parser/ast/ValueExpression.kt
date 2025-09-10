@@ -8,7 +8,7 @@ class ValueExpression(private val value: Value): Expression {
 
     constructor(num: Int) : this(NumberValue(num))
 
-    constructor(num: Float) : this(NumberValue(num))
+    constructor(num: Double) : this(NumberValue(num))
 
     constructor(str: String) : this(StringValue(str))
 
