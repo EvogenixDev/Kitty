@@ -9,11 +9,13 @@ enum class Type {
     IF,
     ELSE,
     ECHO,
+    VAR,
 
     PLUS,
     MINUS,
     STAR,
     SLASH,
+    EQ,
 
     LT,
     LT_EQ,

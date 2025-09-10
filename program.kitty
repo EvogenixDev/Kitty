@@ -1,8 +1,0 @@
-if 5 > 10 {
-    echo "Yes"
-    echo "You Win"
-}
-else {
-    echo "No"
-    echo "You lose"
-}

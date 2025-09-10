@@ -9,6 +9,8 @@ import ru.kitty.parser.ast.PrintlnStatement
 import ru.kitty.parser.ast.Statement
 import ru.kitty.parser.ast.ValueExpression
 import ru.kitty.parser.ast.UnaryExpression
+import ru.kitty.parser.ast.VariableDeclarationStatement
+import ru.kitty.parser.ast.VariableExpression
 
 class Parser(private val tokens: List<Token>) {
     private val size = tokens.size
@@ -53,6 +55,12 @@ class Parser(private val tokens: List<Token>) {
 
         if (match(Type.ECHO)) {
             return PrintlnStatement(parseExpression())
+        }
+
+        if (match(Type.VAR)) {
+            val name = consume(Type.WORD).text
+            consume(Type.EQ)
+            return VariableDeclarationStatement(name, parseExpression())
         }
 
         throw RuntimeException("Unknown statement")
@@ -232,6 +240,10 @@ class Parser(private val tokens: List<Token>) {
 
         if (lookMatch(0, Type.TEXT)) {
             return ValueExpression(consume(Type.TEXT).text)
+        }
+
+        if (lookMatch(0, Type.WORD)) {
+            return VariableExpression(consume(Type.WORD).text)
         }
 
         throw RuntimeException("Unknown expression ${get(0)}")

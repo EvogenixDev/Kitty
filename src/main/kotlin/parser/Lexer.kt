@@ -13,6 +13,7 @@ class Lexer(private val input: String) {
             "-" to Type.MINUS,
             "*" to Type.STAR,
             "/" to Type.SLASH,
+            "=" to Type.EQ,
             "(" to Type.L_PAREN,
             ")" to Type.R_PAREN,
             "{" to Type.L_BRACE,
@@ -29,7 +30,8 @@ class Lexer(private val input: String) {
             "or" to Type.OR,
             "if" to Type.IF,
             "else" to Type.ELSE,
-            "echo" to Type.ECHO
+            "echo" to Type.ECHO,
+            "var" to Type.VAR,
         )
     }
 
