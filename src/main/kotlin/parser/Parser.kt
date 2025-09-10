@@ -3,6 +3,8 @@ package ru.kitty.parser
 import ru.kitty.parser.ast.BinaryExpression
 import ru.kitty.parser.ast.ConditionalExpression
 import ru.kitty.parser.ast.Expression
+import ru.kitty.parser.ast.PrintlnStatement
+import ru.kitty.parser.ast.Statement
 import ru.kitty.parser.ast.ValueExpression
 import ru.kitty.parser.ast.UnaryExpression
 
@@ -16,13 +18,22 @@ class Parser(private val tokens: List<Token>) {
     }
 
 
-    fun parse(): List<Expression> {
-        val result = mutableListOf<Expression>()
+    fun parse(): List<Statement> {
+        val result = mutableListOf<Statement>()
         while (!match(Type.EOF)) {
-            result.add(parseExpression())
+            result.add(parseStatement())
         }
 
         return result
+    }
+
+
+    private fun parseStatement(): Statement {
+        if (match(Type.ECHO)) {
+            return PrintlnStatement(parseExpression())
+        }
+
+        throw RuntimeException("Unknown statement")
     }
 
 
@@ -183,6 +194,10 @@ class Parser(private val tokens: List<Token>) {
 
         if (lookMatch(0, Type.NUMBER_DECIMAL)) {
             return ValueExpression(consume(Type.NUMBER_DECIMAL).text.toDouble())
+        }
+
+        if (lookMatch(0, Type.TEXT)) {
+            return ValueExpression(consume(Type.TEXT).text)
         }
 
         throw RuntimeException("Unknown expression ${get(0)}")

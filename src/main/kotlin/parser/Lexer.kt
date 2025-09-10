@@ -24,7 +24,8 @@ class Lexer(private val input: String) {
 
         private val KEYWORDS = mapOf<String, Type>(
             "and" to Type.AND,
-            "or" to Type.OR
+            "or" to Type.OR,
+            "echo" to Type.ECHO
         )
     }
 
@@ -36,6 +37,7 @@ class Lexer(private val input: String) {
                 isNumber(current) -> tokenizeNumber()
                 isOperator(current) -> tokenizeOperator()
                 current.isLetter() || current == '_' -> tokenizeWord()
+                current == '"' -> tokenizeText()
                 else -> skipChar()
             }
         }
@@ -93,6 +95,44 @@ class Lexer(private val input: String) {
         } else {
             addToken(Type.WORD, text)
         }
+    }
+
+
+    private fun tokenizeText() {
+        skipChar()
+
+        var current = peekChar(0)
+        val buffer = StringBuilder()
+
+        while (true) {
+            if (current == '\\') {
+                current = nextChar()
+
+                when {
+                    current == '"' -> {
+                        buffer.append('"')
+                        current = nextChar()
+                        continue
+                    }
+
+                    current == 'n' -> {
+                        buffer.append('\n')
+                        current = nextChar()
+                        continue
+                    }
+                }
+            }
+
+            if (current == '"') {
+                break
+            }
+
+            buffer.append(current)
+            current = nextChar()
+        }
+
+        skipChar()
+        addToken(Type.TEXT, buffer.toString())
     }
 
 

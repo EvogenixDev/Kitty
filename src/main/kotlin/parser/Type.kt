@@ -3,7 +3,10 @@ package ru.kitty.parser
 enum class Type {
     NUMBER,
     NUMBER_DECIMAL,
+    TEXT,
     WORD,
+
+    ECHO,
 
     PLUS,
     MINUS,
