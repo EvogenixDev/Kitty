@@ -2,7 +2,7 @@ package ru.kitty.parser
 
 import ru.kitty.parser.ast.BinaryExpression
 import ru.kitty.parser.ast.Expression
-import ru.kitty.parser.ast.NumberExpression
+import ru.kitty.parser.ast.ValueExpression
 import ru.kitty.parser.ast.UnaryExpression
 
 class Parser(private val tokens: List<Token>) {
@@ -93,7 +93,7 @@ class Parser(private val tokens: List<Token>) {
         }
 
         if (lookMatch(0, Type.NUMBER)) {
-            return NumberExpression(consume(Type.NUMBER).text.toInt())
+            return ValueExpression(consume(Type.NUMBER).text.toInt())
         }
 
         throw RuntimeException("Unknown expression ${get(0)}")
