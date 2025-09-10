@@ -1,8 +1,10 @@
 package ru.kitty.parser
 
 import ru.kitty.parser.ast.BinaryExpression
+import ru.kitty.parser.ast.BlockStatement
 import ru.kitty.parser.ast.ConditionalExpression
 import ru.kitty.parser.ast.Expression
+import ru.kitty.parser.ast.IfStatement
 import ru.kitty.parser.ast.PrintlnStatement
 import ru.kitty.parser.ast.Statement
 import ru.kitty.parser.ast.ValueExpression
@@ -18,8 +20,9 @@ class Parser(private val tokens: List<Token>) {
     }
 
 
-    fun parse(): List<Statement> {
-        val result = mutableListOf<Statement>()
+    fun parse(): Statement {
+        val result = BlockStatement()
+
         while (!match(Type.EOF)) {
             result.add(parseStatement())
         }
@@ -28,12 +31,43 @@ class Parser(private val tokens: List<Token>) {
     }
 
 
+    private fun parseStatementOrBlock(): Statement {
+        if (match(Type.L_BRACE)) {
+            val block = BlockStatement()
+            while (!lookMatch(0, Type.R_BRACE)) {
+                block.add(parseStatement())
+            }
+
+            consume(Type.R_BRACE)
+            return block
+        }
+
+        return parseStatement()
+    }
+
+
     private fun parseStatement(): Statement {
+        if (match(Type.IF)) {
+            return parseIfStatement()
+        }
+
         if (match(Type.ECHO)) {
             return PrintlnStatement(parseExpression())
         }
 
         throw RuntimeException("Unknown statement")
+    }
+
+
+    private fun parseIfStatement(): Statement {
+        val condition = parseExpression()
+        val ifStatement = parseStatementOrBlock()
+        val elseStatement = when (match(Type.ELSE)) {
+            true -> parseStatementOrBlock()
+            false -> null
+        }
+
+        return IfStatement(condition, ifStatement, elseStatement)
     }
 
 

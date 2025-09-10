@@ -6,6 +6,8 @@ enum class Type {
     TEXT,
     WORD,
 
+    IF,
+    ELSE,
     ECHO,
 
     PLUS,
@@ -24,6 +26,8 @@ enum class Type {
 
     L_PAREN,
     R_PAREN,
+    L_BRACE,
+    R_BRACE,
 
     EOF
 }
