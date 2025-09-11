@@ -1,5 +1,7 @@
 package ru.kitty.parser.ast
 
+import ru.kitty.lang.ScopeHandler
+
 class IfStatement(
     val condition: Expression,
     val ifStatement: Statement,
@@ -8,10 +10,16 @@ class IfStatement(
 
     override fun execute() {
         if (condition.eval().asInt() == 1) {
+            ScopeHandler.push()
             ifStatement.execute()
+            ScopeHandler.pop()
             return
         }
 
-        elseStatement?.execute()
+        elseStatement?.let {
+            ScopeHandler.push()
+            it.execute()
+            ScopeHandler.pop()
+        }
     }
 }

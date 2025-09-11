@@ -123,9 +123,9 @@ class Parser(private val tokens: List<Token>) {
 
 
     private fun parseIfStatement(): Statement {
-        consume(Type.L_PAREN)
+        match(Type.L_PAREN)
         val condition = parseExpression()
-        consume(Type.R_PAREN)
+        match(Type.R_PAREN)
 
         val ifStatement = parseStatementOrBlock()
         val elseStatement = when (match(Type.ELSE)) {
@@ -138,7 +138,7 @@ class Parser(private val tokens: List<Token>) {
 
 
     private fun parseForStatement(): Statement {
-        consume(Type.L_PAREN)
+        match(Type.L_PAREN)
         val initialization = when (match(Type.VAR)) {
             true -> parseVariableDeclaration()
             else -> parseAssignment()
@@ -150,7 +150,7 @@ class Parser(private val tokens: List<Token>) {
         consume(Type.COMMA)
 
         val increment = parseAssignment()
-        consume(Type.R_PAREN)
+        match(Type.R_PAREN)
 
         val statement = parseStatementOrBlock()
         return ForStatement(initialization, condition, increment, statement)
@@ -158,7 +158,9 @@ class Parser(private val tokens: List<Token>) {
 
 
     private fun parseWhileStatement(): Statement {
+        match(Type.L_PAREN)
         val condition = parseExpression()
+        match(Type.R_PAREN)
         val statement = parseStatementOrBlock()
         return WhileStatement(condition, statement)
     }
