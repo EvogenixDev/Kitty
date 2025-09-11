@@ -1,8 +1,3 @@
-for var x=0, x<4, x=x+1 {
-    for var y=0, y<4, y=y+1 {
-        echo x + y
-    }
+for (var x = 0, x < 10, x+=1) {
+    echo x
 }
-
-echo x
-echo y

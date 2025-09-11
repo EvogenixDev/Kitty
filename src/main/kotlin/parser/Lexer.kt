@@ -13,16 +13,26 @@ class Lexer(private val input: String) {
             "-" to Type.MINUS,
             "*" to Type.STAR,
             "/" to Type.SLASH,
+
             "=" to Type.EQ,
+            "+=" to Type.PLUS_EQ,
+            "-=" to Type.MINUS_EQ,
+            "*=" to Type.STAR_EQ,
+            "/=" to Type.SLASH_EQ,
+            "++" to Type.PLUS_PLUS,
+            "--" to Type.MINUS_MINUS,
+
             "(" to Type.L_PAREN,
             ")" to Type.R_PAREN,
             "{" to Type.L_BRACE,
             "}" to Type.R_BRACE,
+
             "<" to Type.LT,
             ">" to Type.GT,
             "<=" to Type.LT_EQ,
             ">=" to Type.GT_EQ,
             "==" to Type.EQ_EQ,
+
             "," to Type.COMMA,
         )
 

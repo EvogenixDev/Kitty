@@ -89,8 +89,26 @@ class Parser(private val tokens: List<Token>) {
     private fun parseAssignment(): Statement {
         if (lookMatch(0, Type.WORD)) {
             val variable = consume(Type.WORD).text
-            consume(Type.EQ)
-            return AssignmentStatement(variable, parseExpression())
+
+            if (match(Type.EQ)) {
+                return AssignmentStatement(VariableExpression(variable), parseExpression())
+            }
+
+            if (match(Type.PLUS_EQ)) {
+                return AssignmentStatement(VariableExpression(variable), parseExpression(), "+")
+            }
+
+            if (match(Type.MINUS_EQ)) {
+                return AssignmentStatement(VariableExpression(variable), parseExpression(), "-")
+            }
+
+            if (match(Type.STAR_EQ)) {
+                return AssignmentStatement(VariableExpression(variable), parseExpression(), "*")
+            }
+
+            if (match(Type.SLASH_EQ)) {
+                return AssignmentStatement(VariableExpression(variable), parseExpression(), "/")
+            }
         }
 
         throw RuntimeException("Unknown statement")
@@ -105,7 +123,10 @@ class Parser(private val tokens: List<Token>) {
 
 
     private fun parseIfStatement(): Statement {
+        consume(Type.L_PAREN)
         val condition = parseExpression()
+        consume(Type.R_PAREN)
+
         val ifStatement = parseStatementOrBlock()
         val elseStatement = when (match(Type.ELSE)) {
             true -> parseStatementOrBlock()
@@ -117,6 +138,7 @@ class Parser(private val tokens: List<Token>) {
 
 
     private fun parseForStatement(): Statement {
+        consume(Type.L_PAREN)
         val initialization = when (match(Type.VAR)) {
             true -> parseVariableDeclaration()
             else -> parseAssignment()
@@ -128,6 +150,8 @@ class Parser(private val tokens: List<Token>) {
         consume(Type.COMMA)
 
         val increment = parseAssignment()
+        consume(Type.R_PAREN)
+
         val statement = parseStatementOrBlock()
         return ForStatement(initialization, condition, increment, statement)
     }

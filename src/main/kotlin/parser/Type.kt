@@ -21,6 +21,13 @@ enum class Type {
     SLASH,
     EQ,
 
+    PLUS_EQ,
+    MINUS_EQ,
+    STAR_EQ,
+    SLASH_EQ,
+    PLUS_PLUS,
+    MINUS_MINUS,
+
     LT,
     LT_EQ,
     GT,
