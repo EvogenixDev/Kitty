@@ -2,7 +2,7 @@ package ru.kitty.parser.ast
 
 import ru.kitty.lang.Value
 
-interface Accessible : Expression {
+interface Accessible : Node {
 
     fun set(value: Value): Value
 

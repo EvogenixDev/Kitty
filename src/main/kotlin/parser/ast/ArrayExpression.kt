@@ -3,10 +3,10 @@ package ru.kitty.parser.ast
 import ru.kitty.lang.ArrayValue
 import ru.kitty.lang.Value
 
-class ArrayExpression: Expression {
-    private val expressions =mutableListOf<Expression>()
+class ArrayExpression: Node {
+    private val expressions = mutableListOf<Node>()
 
-    fun add(expression: Expression) {
+    fun add(expression: Node) {
         expressions.add(expression)
     }
 

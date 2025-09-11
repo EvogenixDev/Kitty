@@ -6,8 +6,8 @@ import ru.kitty.lang.Value
 
 class UnaryExpression(
     val operation: String,
-    val expression: Expression
-): Expression {
+    val expression: Node
+): Node {
 
     override fun eval(): Value {
         val value = expression.eval()

@@ -1,20 +1,19 @@
 package ru.kitty.parser.ast
 
-import ru.kitty.lang.ScopeHandler
+import ru.kitty.lang.Value
 
 class AssignmentStatement(
     val variable: Accessible,
-    val expression: Expression,
+    val expression: Node,
     val operation: String? = null
 ): Statement {
 
-    override fun execute() {
+    override fun eval(): Value {
         if (operation == null) {
-            variable.set(expression.eval())
-            return
+            return variable.set(expression.eval())
         }
 
         val value = BinaryExpression(operation, variable, expression)
-        variable.set(value.eval())
+        return variable.set(value.eval())
     }
 }

@@ -1,21 +1,23 @@
 package ru.kitty.parser.ast
 
+import ru.kitty.lang.NumberValue
 import ru.kitty.lang.ScopeHandler
+import ru.kitty.lang.Value
 
 class ForStatement(
-    val initialization: Statement,
-    val condition: Expression,
-    val increment: Statement,
-    val statement: Statement
+    val initialization: Node,
+    val condition: Node,
+    val increment: Node,
+    val statement: Node
 ): Statement {
 
-    override fun execute() {
+    override fun eval(): Value {
         ScopeHandler.push()
-        initialization.execute()
+        initialization.eval()
 
         while (condition.eval().asInt() == 1) {
             try {
-                statement.execute()
+                statement.eval()
             }
             catch (e: BreakStatement) {
                 break
@@ -24,8 +26,10 @@ class ForStatement(
 
             }
 
-            increment.execute()
+            increment.eval()
         }
+
         ScopeHandler.pop()
+        return NumberValue.ZERO
     }
 }

@@ -1,8 +1,12 @@
 package ru.kitty.parser.ast
 
-class PrintlnStatement(val expression: Expression): Statement {
+import ru.kitty.lang.NumberValue
+import ru.kitty.lang.Value
 
-    override fun execute() {
+class PrintlnStatement(val expression: Node): Statement {
+
+    override fun eval(): Value {
         println(expression.eval())
+        return NumberValue.ZERO
     }
 }

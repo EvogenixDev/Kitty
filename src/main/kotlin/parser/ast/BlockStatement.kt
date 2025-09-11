@@ -1,15 +1,20 @@
 package ru.kitty.parser.ast
 
-class BlockStatement(): Statement {
-    val statements = mutableListOf<Statement>()
+import ru.kitty.lang.NumberValue
+import ru.kitty.lang.Value
 
-    fun add(statement: Statement) {
+class BlockStatement(): Statement {
+    val statements = mutableListOf<Node>()
+
+    fun add(statement: Node) {
         statements.add(statement)
     }
 
-    override fun execute() {
+    override fun eval(): Value {
         for (i in 0..<statements.size) {
-            statements[i].execute()
+            statements[i].eval()
         }
+
+        return NumberValue.ZERO
     }
 }

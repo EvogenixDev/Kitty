@@ -1,25 +1,31 @@
 package ru.kitty.parser.ast
 
+import ru.kitty.lang.NumberValue
 import ru.kitty.lang.ScopeHandler
+import ru.kitty.lang.Value
 
 class IfStatement(
-    val condition: Expression,
-    val ifStatement: Statement,
-    val elseStatement: Statement? = null
+    val condition: Node,
+    val ifStatement: Node,
+    val elseStatement: Node? = null
 ): Statement {
 
-    override fun execute() {
-        if (condition.eval().asInt() == 1) {
-            ScopeHandler.push()
-            ifStatement.execute()
-            ScopeHandler.pop()
-            return
+    override fun eval(): Value {
+        when (condition.eval().asInt() == 1) {
+            true -> {
+                ScopeHandler.push()
+                ifStatement.eval()
+                ScopeHandler.pop()
+            }
+            false -> {
+                elseStatement?.let {
+                    ScopeHandler.push()
+                    it.eval()
+                    ScopeHandler.pop()
+                }
+            }
         }
 
-        elseStatement?.let {
-            ScopeHandler.push()
-            it.execute()
-            ScopeHandler.pop()
-        }
+        return NumberValue.ZERO
     }
 }

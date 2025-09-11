@@ -1,5 +1,3 @@
 package ru.kitty.parser.ast
 
-interface Statement {
-    fun execute()
-}
+interface Statement : Node

@@ -9,5 +9,5 @@ fun main() {
     val code = Files.readString(Path("program.kitty"))
     val tokens = Lexer(code).tokenize()
     val statement = Parser(tokens).parse()
-    statement.execute()
+    statement.eval()
 }

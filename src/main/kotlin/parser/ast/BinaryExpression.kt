@@ -6,9 +6,9 @@ import ru.kitty.lang.Value
 
 class BinaryExpression(
     val operation: String,
-    val leftExpression: Expression,
-    val rightExpression: Expression
-): Expression {
+    val leftExpression: Node,
+    val rightExpression: Node
+): Node {
 
     override fun eval(): Value {
         val left = leftExpression.eval()

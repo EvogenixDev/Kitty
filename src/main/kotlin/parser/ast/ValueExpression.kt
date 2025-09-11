@@ -4,7 +4,7 @@ import ru.kitty.lang.NumberValue
 import ru.kitty.lang.StringValue
 import ru.kitty.lang.Value
 
-class ValueExpression(private val value: Value): Expression {
+class ValueExpression(private val value: Value): Node {
 
     constructor(num: Int) : this(NumberValue(num))
 

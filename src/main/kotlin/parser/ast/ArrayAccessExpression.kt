@@ -4,11 +4,21 @@ import ru.kitty.lang.ArrayValue
 import ru.kitty.lang.Value
 
 class ArrayAccessExpression(
-    val target: Accessible,
-    val indices: List<Expression>
-): Expression {
+    val target: Node,
+    val indices: List<Node>
+): Node, Accessible {
 
     override fun eval(): Value {
+        return get()
+    }
+
+    override fun set(value: Value): Value {
+        val array = getArray()
+        array.set(lastIndex(), value)
+        return value
+    }
+
+    override fun get(): Value {
         return getArray().get(lastIndex())
     }
 
