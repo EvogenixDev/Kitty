@@ -1,5 +1,7 @@
 package ru.kitty.parser.ast
 
+import ru.kitty.lang.ScopeHandler
+
 class ForStatement(
     val initialization: Statement,
     val condition: Expression,
@@ -8,6 +10,7 @@ class ForStatement(
 ): Statement {
 
     override fun execute() {
+        ScopeHandler.push()
         initialization.execute()
 
         while (condition.eval().asInt() == 1) {
@@ -23,5 +26,6 @@ class ForStatement(
 
             increment.execute()
         }
+        ScopeHandler.pop()
     }
 }

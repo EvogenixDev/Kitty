@@ -16,10 +16,6 @@ object ScopeHandler {
         scope = scope.parent?: rootScope
     }
 
-    fun hasVariable(name: String): Boolean {
-        return rootScope.hasVariable(name)
-    }
-
     fun declareVariableInCurrentScope(name: String, value: Value) {
         scope.setVariable(name, value)
     }
@@ -44,16 +40,18 @@ object ScopeHandler {
     }
 
     private fun findScope(name: String): Scope.FindData {
-        var current: Scope = scope
-        do {
-            if (current.hasVariable(name)) {
-                return Scope.FindData(current, true)
-            }
+        return findScope(name, scope)
+    }
 
-            current = current.parent?: rootScope
+    private fun findScope(name: String, s: Scope): Scope.FindData {
+        if (s.hasVariable(name)) {
+            return Scope.FindData(s, true)
         }
-        while (current.parent != null)
 
-        return Scope.FindData(scope, false)
+        if (s.hasParent()) {
+            return findScope(name, s.parent!!)
+        }
+
+        return Scope.FindData(s, false)
     }
 }
