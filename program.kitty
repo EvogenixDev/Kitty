@@ -1,6 +1,2 @@
-
-while (x < 20) {
-    var x = 5
-    echo x
-    x+=1
-}
+var arr = [8, 2, 3, ["Hello", "World"]]
+echo arr[3][1]

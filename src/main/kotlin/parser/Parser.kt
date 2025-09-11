@@ -1,5 +1,7 @@
 package ru.kitty.parser
 
+import ru.kitty.parser.ast.ArrayAccessExpression
+import ru.kitty.parser.ast.ArrayExpression
 import ru.kitty.parser.ast.AssignmentStatement
 import ru.kitty.parser.ast.BinaryExpression
 import ru.kitty.parser.ast.BlockStatement
@@ -166,6 +168,29 @@ class Parser(private val tokens: List<Token>) {
     }
 
 
+    private fun parseArrayExpression(): Expression {
+        val array = ArrayExpression()
+        while (!lookMatch(0, Type.R_BRACKET)) {
+            array.add(parseExpression())
+            match(Type.COMMA)
+        }
+
+        consume(Type.R_BRACKET)
+        return array
+    }
+
+    private fun parseArrayElement(): Expression {
+        val target = VariableExpression(consume(Type.WORD).text)
+        val indices = mutableListOf<Expression>()
+
+        while (match(Type.L_BRACKET)) {
+            indices.add(parseExpression())
+            consume(Type.R_BRACKET)
+        }
+
+        return ArrayAccessExpression(target, indices)
+    }
+
     private fun parseExpression(): Expression {
         return parseLogicalOr()
     }
@@ -317,6 +342,10 @@ class Parser(private val tokens: List<Token>) {
             return result
         }
 
+        if (match(Type.L_BRACKET)) {
+            return parseArrayExpression()
+        }
+
         if (lookMatch(0, Type.NUMBER)) {
             return ValueExpression(consume(Type.NUMBER).text.toInt())
         }
@@ -327,6 +356,10 @@ class Parser(private val tokens: List<Token>) {
 
         if (lookMatch(0, Type.TEXT)) {
             return ValueExpression(consume(Type.TEXT).text)
+        }
+
+        if (lookMatch(0, Type.WORD) && lookMatch(1, Type.L_BRACKET)) {
+            return parseArrayElement()
         }
 
         if (lookMatch(0, Type.WORD)) {
