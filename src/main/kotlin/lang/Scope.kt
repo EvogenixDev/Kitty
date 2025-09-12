@@ -23,10 +23,6 @@ open class Scope(open val parent: Scope?) {
         return variables.containsKey(name)
     }
 
-    fun variables(): Map<String, Value> {
-        return variables
-    }
-
     data class FindData(
         val scope: Scope,
         val isFound: Boolean

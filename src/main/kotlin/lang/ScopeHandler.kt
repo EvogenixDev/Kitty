@@ -16,6 +16,14 @@ object ScopeHandler {
         scope = scope.parent?: rootScope
     }
 
+    fun setFunction(name: String, function: Function) {
+        rootScope.setFunction(name, function)
+    }
+
+    fun getFunction(name: String): Function {
+        return rootScope.getFunction(name)
+    }
+
     fun declareVariableInCurrentScope(name: String, value: Value) {
         scope.setVariable(name, value)
     }

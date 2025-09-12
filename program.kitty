@@ -1,3 +1,14 @@
-var mas = [12, 1, 2]
-mas[0] += 200
-echo mas[0]
+func sum(a, b) {
+    return a + b
+}
+
+
+func test(flag) {
+    if (flag) {
+        return sum(40, 20)
+    }
+
+    return "No"
+}
+
+echo test(1)

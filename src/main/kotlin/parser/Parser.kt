@@ -9,10 +9,14 @@ import ru.kitty.parser.ast.BlockStatement
 import ru.kitty.parser.ast.BreakStatement
 import ru.kitty.parser.ast.ConditionalExpression
 import ru.kitty.parser.ast.ContinueStatement
+import ru.kitty.parser.ast.ExprStatement
 import ru.kitty.parser.ast.Node
 import ru.kitty.parser.ast.ForStatement
+import ru.kitty.parser.ast.FunctionDefineStatement
+import ru.kitty.parser.ast.FunctionalExpression
 import ru.kitty.parser.ast.IfStatement
 import ru.kitty.parser.ast.PrintlnStatement
+import ru.kitty.parser.ast.ReturnStatement
 import ru.kitty.parser.ast.Statement
 import ru.kitty.parser.ast.ValueExpression
 import ru.kitty.parser.ast.UnaryExpression
@@ -27,6 +31,14 @@ class Parser(private val tokens: List<Token>) {
 
     companion object {
         private val EOF = Token("", Type.EOF)
+
+        private val ASSIGN_OPERATORS = mapOf<Type, BinaryExpression.Operator?>(
+            Type.EQ to null,
+            Type.PLUS_EQ to BinaryExpression.Operator.ADD,
+            Type.MINUS_EQ to BinaryExpression.Operator.SUBTRACT,
+            Type.STAR_EQ to BinaryExpression.Operator.MULTIPLY,
+            Type.SLASH_EQ to BinaryExpression.Operator.DIVIDE
+        )
     }
 
 
@@ -41,7 +53,7 @@ class Parser(private val tokens: List<Token>) {
     }
 
 
-    private fun parseStatementOrBlock(): Node {
+    private fun parseStatementOrBlock(): Statement {
         if (match(Type.L_BRACE)) {
             val block = BlockStatement()
             while (!lookMatch(0, Type.R_BRACE)) {
@@ -56,7 +68,12 @@ class Parser(private val tokens: List<Token>) {
     }
 
 
-    private fun parseStatement(): Node {
+//    private fun parseBlock(): Node {
+//
+//    }
+
+
+    private fun parseStatement(): Statement {
         if (match(Type.IF)) {
             return parseIfStatement()
         }
@@ -85,71 +102,50 @@ class Parser(private val tokens: List<Token>) {
             return ContinueStatement()
         }
 
+        if (match(Type.RETURN)) {
+            val expression = try {
+                parseExpression()
+            }
+            catch (e: Exception) {
+                null
+            }
+
+            return ReturnStatement(expression)
+        }
+
+        if (match(Type.FUNC)) {
+            return parseFunctionDefine()
+        }
+
+        if (lookMatch(0, Type.WORD) && lookMatch(1, Type.L_PAREN)) {
+            return ExprStatement(parseFunction())
+        }
+
         return parseAssignment()
     }
 
 
-    private fun parseAssignment(): Node {
-        if (lookMatch(0, Type.WORD) && lookMatch(1, Type.L_BRACKET)) {
-            val target = parseArrayElement() as Accessible
+    private fun parseAssignment(): AssignmentStatement {
+        val targetExpr = parseQualifiedName()
+        val currentType = get(0).type
 
-            if (match(Type.EQ)) {
-                return AssignmentStatement(target, parseExpression())
-            }
-
-            if (match(Type.PLUS_EQ)) {
-                return AssignmentStatement(target, parseExpression(), "+")
-            }
-
-            if (match(Type.MINUS_EQ)) {
-                return AssignmentStatement(target, parseExpression(), "-")
-            }
-
-            if (match(Type.STAR_EQ)) {
-                return AssignmentStatement(target, parseExpression(), "*")
-            }
-
-            if (match(Type.SLASH_EQ)) {
-                return AssignmentStatement(target, parseExpression(), "/")
-            }
-        }
-
-        if (lookMatch(0, Type.WORD)) {
-            val variable = consume(Type.WORD).text
-
-            if (match(Type.EQ)) {
-                return AssignmentStatement(VariableExpression(variable), parseExpression())
-            }
-
-            if (match(Type.PLUS_EQ)) {
-                return AssignmentStatement(VariableExpression(variable), parseExpression(), "+")
-            }
-
-            if (match(Type.MINUS_EQ)) {
-                return AssignmentStatement(VariableExpression(variable), parseExpression(), "-")
-            }
-
-            if (match(Type.STAR_EQ)) {
-                return AssignmentStatement(VariableExpression(variable), parseExpression(), "*")
-            }
-
-            if (match(Type.SLASH_EQ)) {
-                return AssignmentStatement(VariableExpression(variable), parseExpression(), "/")
-            }
+        if (ASSIGN_OPERATORS.containsKey(currentType)) {
+            consume(currentType)
+            return AssignmentStatement(targetExpr as Accessible, parseExpression(), ASSIGN_OPERATORS[currentType])
         }
 
         throw RuntimeException("Unknown statement")
     }
 
 
-    private fun parseVariableDeclaration(): Node {
+    private fun parseVariableDeclaration(): VariableDeclarationStatement {
         val name = consume(Type.WORD).text
         consume(Type.EQ)
         return VariableDeclarationStatement(name, parseExpression())
     }
 
 
-    private fun parseIfStatement(): Node {
+    private fun parseIfStatement(): IfStatement {
         match(Type.L_PAREN)
         val condition = parseExpression()
         match(Type.R_PAREN)
@@ -164,7 +160,7 @@ class Parser(private val tokens: List<Token>) {
     }
 
 
-    private fun parseForStatement(): Node {
+    private fun parseForStatement(): ForStatement {
         match(Type.L_PAREN)
         val initialization = when (match(Type.VAR)) {
             true -> parseVariableDeclaration()
@@ -184,12 +180,29 @@ class Parser(private val tokens: List<Token>) {
     }
 
 
-    private fun parseWhileStatement(): Node {
+    private fun parseWhileStatement(): WhileStatement {
         match(Type.L_PAREN)
         val condition = parseExpression()
         match(Type.R_PAREN)
         val statement = parseStatementOrBlock()
         return WhileStatement(condition, statement)
+    }
+
+
+    private fun parseFunctionDefine(): FunctionDefineStatement {
+        val name = consume(Type.WORD).text
+        val argNames = mutableListOf<String>()
+        consume(Type.L_PAREN)
+
+        while (!lookMatch(0, Type.R_PAREN)) {
+            argNames.add(consume(Type.WORD).text)
+            match(Type.COMMA)
+        }
+
+        consume(Type.R_PAREN)
+
+        val statement = parseStatementOrBlock()
+        return FunctionDefineStatement(name, argNames, statement)
     }
 
 
@@ -215,6 +228,22 @@ class Parser(private val tokens: List<Token>) {
 
         return ArrayAccessExpression(target, indices)
     }
+
+
+    private fun parseFunction(): FunctionalExpression {
+        val name = consume(Type.WORD).text
+        consume(Type.L_PAREN)
+
+        val arguments = mutableListOf<Node>()
+        while (!lookMatch(0, Type.R_PAREN)) {
+            arguments.add(parseExpression())
+            match(Type.COMMA)
+        }
+
+        consume(Type.R_PAREN)
+        return FunctionalExpression(name, arguments)
+    }
+
 
     private fun parseExpression(): Node {
         return parseLogicalOr()
@@ -310,12 +339,12 @@ class Parser(private val tokens: List<Token>) {
 
         while (true) {
             if (match(Type.PLUS)) {
-                result = BinaryExpression("+", result, parseMultiplication())
+                result = BinaryExpression(BinaryExpression.Operator.ADD, result, parseMultiplication())
                 continue
             }
 
             if (match(Type.MINUS)) {
-                result = BinaryExpression("-", result, parseMultiplication())
+                result = BinaryExpression(BinaryExpression.Operator.SUBTRACT, result, parseMultiplication())
                 continue
             }
 
@@ -331,12 +360,12 @@ class Parser(private val tokens: List<Token>) {
 
         while (true) {
             if (match(Type.STAR)) {
-                result = BinaryExpression("*", result, parseUnary())
+                result = BinaryExpression(BinaryExpression.Operator.MULTIPLY, result, parseUnary())
                 continue
             }
 
             if (match(Type.SLASH)) {
-                result = BinaryExpression("/", result, parseUnary())
+                result = BinaryExpression(BinaryExpression.Operator.DIVIDE, result, parseUnary())
                 continue
             }
 
@@ -371,6 +400,28 @@ class Parser(private val tokens: List<Token>) {
             return parseArrayExpression()
         }
 
+        return parseQualifiedName()
+    }
+
+
+    private fun parseQualifiedName(): Node {
+        if (lookMatch(0, Type.WORD) && lookMatch(1, Type.L_PAREN)) {
+            return parseFunction()
+        }
+
+        if (lookMatch(0, Type.WORD) && lookMatch(1, Type.L_BRACKET)) {
+            return parseArrayElement()
+        }
+
+        if (lookMatch(0, Type.WORD)) {
+            return VariableExpression(consume(Type.WORD).text)
+        }
+
+        return parseValue()
+    }
+
+
+    private fun parseValue(): ValueExpression {
         if (lookMatch(0, Type.NUMBER)) {
             return ValueExpression(consume(Type.NUMBER).text.toInt())
         }
@@ -383,21 +434,8 @@ class Parser(private val tokens: List<Token>) {
             return ValueExpression(consume(Type.TEXT).text)
         }
 
-        if (lookMatch(0, Type.WORD) && lookMatch(1, Type.L_BRACKET)) {
-            return parseArrayElement()
-        }
-
-        if (lookMatch(0, Type.WORD)) {
-            return VariableExpression(consume(Type.WORD).text)
-        }
-
         throw RuntimeException("Unknown expression ${get(0)}")
     }
-
-
-//    private fun parseQualifiedName(): Expression {
-//
-//    }
 
 
     private fun lookMatch(offset: Int, type: Type): Boolean {

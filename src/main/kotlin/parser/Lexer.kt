@@ -49,6 +49,8 @@ class Lexer(private val input: String) {
             "while" to Type.WHILE,
             "break" to Type.BREAK,
             "continue" to Type.CONTINUE,
+            "return" to Type.RETURN,
+            "func" to Type.FUNC,
         )
     }
 

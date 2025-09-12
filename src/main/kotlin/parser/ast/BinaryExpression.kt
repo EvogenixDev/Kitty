@@ -5,21 +5,27 @@ import ru.kitty.lang.StringValue
 import ru.kitty.lang.Value
 
 class BinaryExpression(
-    val operation: String,
+    val operation: Operator,
     val leftExpression: Node,
     val rightExpression: Node
 ): Node {
+
+    enum class Operator {
+        ADD,
+        SUBTRACT,
+        MULTIPLY,
+        DIVIDE
+    }
 
     override fun eval(): Value {
         val left = leftExpression.eval()
         val right = rightExpression.eval()
 
         return when (operation) {
-            "+" -> add(left, right)
-            "-" -> subtract(left, right)
-            "*" -> multiply(left, right)
-            "/" -> divide(left, right)
-            else -> throw RuntimeException("Unsupported operation $operation")
+            Operator.ADD -> add(left, right)
+            Operator.SUBTRACT -> subtract(left, right)
+            Operator.MULTIPLY -> multiply(left, right)
+            Operator.DIVIDE -> divide(left, right)
         }
     }
 

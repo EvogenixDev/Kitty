@@ -14,6 +14,8 @@ enum class Type {
     WHILE,
     BREAK,
     CONTINUE,
+    RETURN,
+    FUNC,
 
     PLUS,
     MINUS,

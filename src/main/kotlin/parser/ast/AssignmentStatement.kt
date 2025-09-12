@@ -3,17 +3,17 @@ package ru.kitty.parser.ast
 import ru.kitty.lang.Value
 
 class AssignmentStatement(
-    val variable: Accessible,
+    val target: Accessible,
     val expression: Node,
-    val operation: String? = null
+    val operation: BinaryExpression.Operator? = null
 ): Statement {
 
     override fun eval(): Value {
         if (operation == null) {
-            return variable.set(expression.eval())
+            return target.set(expression.eval())
         }
 
-        val value = BinaryExpression(operation, variable, expression)
-        return variable.set(value.eval())
+        val value = BinaryExpression(operation, target, expression)
+        return target.set(value.eval())
     }
 }
