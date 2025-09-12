@@ -14,7 +14,7 @@ class ArrayAccessExpression(
 
     override fun set(value: Value): Value {
         val array = getArray()
-        array.set(lastIndex(), value)
+        array.set(lastIndex().asInt(), value)
         return value
     }
 
@@ -41,11 +41,11 @@ class ArrayAccessExpression(
         return value
     }
 
-    private fun index(index: Int): Int {
-        return indices[index].eval().asInt()
+    private fun index(index: Int): Value {
+        return indices[index].eval()
     }
 
-    private fun lastIndex(): Int {
+    private fun lastIndex(): Value {
         return index(indices.size-1)
     }
 }

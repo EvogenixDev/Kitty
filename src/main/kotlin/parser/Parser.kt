@@ -1,5 +1,6 @@
 package ru.kitty.parser
 
+import ru.kitty.lang.Value
 import ru.kitty.parser.ast.Accessible
 import ru.kitty.parser.ast.ArrayAccessExpression
 import ru.kitty.parser.ast.ArrayExpression
@@ -411,6 +412,15 @@ class Parser(private val tokens: List<Token>) {
 
         if (lookMatch(0, Type.WORD) && lookMatch(1, Type.L_BRACKET)) {
             return parseArrayElement()
+        }
+
+        //property access
+        if (lookMatch(0, Type.WORD) && lookMatch(1, Type.DOT)) {
+            val variable = VariableExpression(consume(Type.WORD).text)
+            val indices = mutableListOf<Node>()
+            consume(Type.DOT)
+            indices.add(ValueExpression(consume(Type.WORD).text))
+            return ArrayAccessExpression(variable, indices)
         }
 
         if (lookMatch(0, Type.WORD)) {

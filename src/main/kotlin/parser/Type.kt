@@ -47,6 +47,7 @@ enum class Type {
     R_BRACKET,
 
     COMMA,
+    DOT,
 
     EOF
 }
