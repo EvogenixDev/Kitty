@@ -3,7 +3,13 @@ package ru.kitty.parser
 class Lexer(private val input: String) {
     private val length = input.length
     private val tokens = mutableListOf<Token>()
+
+    //позиция символа
     private var position = 0
+    //строка
+    private var row = 1
+    //столбец
+    private var col = 1
 
 
     companion object {
@@ -44,7 +50,7 @@ class Lexer(private val input: String) {
             "or" to Type.OR,
             "if" to Type.IF,
             "else" to Type.ELSE,
-            "echo" to Type.ECHO,
+            "meow" to Type.ECHO,
             "var" to Type.VAR,
             "for" to Type.FOR,
             "while" to Type.WHILE,
@@ -201,6 +207,13 @@ class Lexer(private val input: String) {
 
 
     private fun skipChar() {
+        col++
+
+        if (peekChar(0) == '\n') {
+            col = 1
+            row++
+        }
+
         position++
     }
 
@@ -220,6 +233,6 @@ class Lexer(private val input: String) {
 
 
     private fun addToken(type: Type, text: String) {
-        tokens.add(Token(text, type))
+        tokens.add(Token(text, type, row, col))
     }
 }

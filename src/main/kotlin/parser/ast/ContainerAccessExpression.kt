@@ -1,9 +1,10 @@
 package ru.kitty.parser.ast
 
 import ru.kitty.lang.ArrayValue
+import ru.kitty.lang.StringValue
 import ru.kitty.lang.Value
 
-class ArrayAccessExpression(
+class ContainerAccessExpression(
     val target: Node,
     val indices: List<Node>
 ): Node, Accessible {
@@ -19,6 +20,11 @@ class ArrayAccessExpression(
     }
 
     override fun get(): Value {
+        val value = target.eval()
+        if (value is StringValue) {
+            return value.access(lastIndex())
+        }
+
         return getArray().get(lastIndex())
     }
 

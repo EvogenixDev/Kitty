@@ -1,0 +1,569 @@
+package ru.kitty.parser
+
+import ru.kitty.parser.ast.*
+
+class KittyParser private constructor(private val tokens: List<Token>){
+    companion object {
+
+        fun create(tokens: List<Token>): KittyParser {
+            return KittyParser(tokens)
+        }
+
+        private val ASSIGN_OPERATORS = mapOf<Type, BinaryExpression.Operator?>(
+            Type.EQ to null,
+            Type.PLUS_EQ to BinaryExpression.Operator.ADD,
+            Type.MINUS_EQ to BinaryExpression.Operator.SUBTRACT,
+            Type.STAR_EQ to BinaryExpression.Operator.MULTIPLY,
+            Type.SLASH_EQ to BinaryExpression.Operator.DIVIDE
+        )
+    }
+
+
+    private var position = 0
+    private val size = tokens.size
+
+
+    fun parse(): Node {
+        val result = BlockStatement()
+
+        while (!match(Type.EOF)) {
+            result.add(statement())
+        }
+
+        return result
+    }
+
+
+    private fun statementOrBlock(): Statement {
+        if (lookMatch(0, Type.L_BRACE)) {
+            return block()
+        }
+
+        return statement()
+    }
+
+
+    private fun block(): BlockStatement {
+        val block = BlockStatement()
+        consume(Type.L_BRACE)
+
+        while (!lookMatch(0, Type.R_BRACE)) {
+            block.add(statement())
+        }
+
+        consume(Type.R_BRACE)
+        return block
+    }
+
+
+    private fun statement(): Statement {
+        if (match(Type.IF)) {
+            return ifElse()
+        }
+
+        if (match(Type.FOR)) {
+            return forStatement()
+        }
+
+        if (match(Type.WHILE)) {
+            return whileStatement()
+        }
+
+        if (match(Type.BREAK)) {
+            return BreakStatement()
+        }
+
+        if (match(Type.CONTINUE)) {
+            return ContinueStatement()
+        }
+
+        if (match(Type.RETURN)) {
+            return returnStatement()
+        }
+
+        if (match(Type.ECHO)) {
+            return PrintlnStatement(expression())
+        }
+
+        if (match(Type.VAR)) {
+            return variableDeclaration()
+        }
+
+        if (match(Type.FUNC)) {
+            return functionDefine()
+        }
+
+        if (lookMatch(0, Type.WORD) && lookMatch(1, Type.L_PAREN)) {
+            return functionCallStatement()
+        }
+
+        return assignment()
+    }
+
+
+    private fun ifElse(): IfStatement {
+        val hasParen = match(Type.L_PAREN)
+        val condition = expression()
+
+        if (hasParen) {
+            consume(Type.R_PAREN)
+        }
+
+        val ifStatement = statementOrBlock()
+        val elseStatement = when (match(Type.ELSE)) {
+            true -> statementOrBlock()
+            false -> null
+        }
+
+        return IfStatement(condition, ifStatement, elseStatement)
+    }
+
+
+    private fun forStatement(): ForStatement {
+        val hasParen = match(Type.L_PAREN)
+        val init = when (match(Type.VAR)) {
+            true -> variableDeclaration()
+            false -> assignment()
+        }
+
+        consume(Type.COMMA)
+
+        val condition = expression()
+        consume(Type.COMMA)
+
+        val increment = assignment()
+        if (hasParen) {
+            consume(Type.R_PAREN)
+        }
+
+        val statement = statementOrBlock()
+        return ForStatement(init, condition, increment, statement)
+    }
+
+
+    private fun whileStatement(): WhileStatement {
+        val hasParen = match(Type.L_PAREN)
+        val condition = expression()
+
+        if (hasParen) {
+            consume(Type.R_PAREN)
+        }
+
+        val statement = statementOrBlock()
+        return WhileStatement(condition, statement)
+    }
+
+
+    private fun returnStatement(): ReturnStatement {
+        val result = try {
+            expression()
+        }
+        catch (e: Exception) {
+            null
+        }
+
+        return ReturnStatement(result)
+    }
+
+
+    private fun variableDeclaration(): VariableDeclarationStatement {
+        val variable = consume(Type.WORD).text
+        consume(Type.EQ)
+
+        val expression = expression()
+        return VariableDeclarationStatement(variable, expression)
+    }
+
+
+    private fun functionDefine(): FunctionDefineStatement {
+        val name = consume(Type.WORD).text
+        val argNames = mutableListOf<String>()
+        consume(Type.L_PAREN)
+
+        while (!lookMatch(0, Type.R_PAREN)) {
+            argNames.add(consume(Type.WORD).text)
+            match(Type.COMMA)
+        }
+
+        consume(Type.R_PAREN)
+
+        val statement = block()
+        return FunctionDefineStatement(name, argNames, statement)
+    }
+
+
+    private fun assignment(): AssignmentStatement {
+        val target = qualifiedName()
+
+        if (target !is Accessible) {
+            throw RuntimeException("Cannot assign $target")
+        }
+
+        val currentType = get(0).type
+
+        if (!ASSIGN_OPERATORS.containsKey(currentType)) {
+            throw RuntimeException("Invalid assignment operator $currentType")
+        }
+
+        consume(currentType)
+        val operation = ASSIGN_OPERATORS[currentType]
+        return AssignmentStatement(target, expression(), operation)
+    }
+
+
+    private fun functionCallStatement(): ExprStatement {
+        return ExprStatement(
+            functionChain(ValueExpression(consume(Type.WORD).text))
+        )
+    }
+
+
+    private fun functionChain(nameExpr: Node): Node {
+        val expr = function(nameExpr)
+
+        if (lookMatch(0, Type.DOT)) {
+            val indices = variableSuffix()
+            if (indices.isEmpty()) {
+                return expr
+            }
+
+            if (lookMatch(0, Type.L_PAREN)) {
+                return functionChain(ContainerAccessExpression(expr, indices))
+            }
+
+            return ContainerAccessExpression(expr, indices)
+        }
+
+        return expr
+    }
+
+
+    private fun function(nameExpr: Node): FunctionalExpression {
+        val args = mutableListOf<Node>()
+        consume(Type.L_PAREN)
+
+        while (!lookMatch(0, Type.R_PAREN)) {
+            args.add(expression())
+            match(Type.COMMA)
+        }
+
+        consume(Type.R_PAREN)
+        return FunctionalExpression(nameExpr, args)
+    }
+
+
+    private fun array(): ArrayExpression {
+        val array = ArrayExpression()
+        consume(Type.L_BRACKET)
+
+        while (!lookMatch(0, Type.R_BRACKET)) {
+            array.add(expression())
+            match(Type.COMMA)
+        }
+
+        consume(Type.R_BRACKET)
+
+        return array
+    }
+
+
+    private fun expression(): Node {
+        return logicalOr()
+    }
+
+
+    private fun logicalOr(): Node {
+        var result = logicalAnd()
+
+        while (true) {
+            if (match(Type.OR)) {
+                result = ConditionalExpression("or", result, logicalAnd())
+                continue
+            }
+
+            break
+        }
+
+        return result
+    }
+
+
+    private fun logicalAnd(): Node {
+        var result = equality()
+
+        while (true) {
+            if (match(Type.AND)) {
+                result = ConditionalExpression("and", result, equality())
+                continue
+            }
+
+            break
+        }
+
+        return result
+    }
+
+
+    private fun equality(): Node {
+        var result = condition()
+
+        while (true) {
+            if (match(Type.EQ_EQ)) {
+                result = ConditionalExpression("==", result, condition())
+                continue
+            }
+
+            if (match(Type.NOT_EQ)) {
+                result = ConditionalExpression("!=", result, condition())
+                continue
+            }
+
+            break
+        }
+
+        return result
+    }
+
+
+    private fun condition(): Node {
+        var result = addition()
+
+        while (true) {
+            if (match(Type.LT)) {
+                result = ConditionalExpression("<", result, addition())
+                continue
+            }
+
+            if (match(Type.GT)) {
+                result = ConditionalExpression(">", result, addition())
+                continue
+            }
+
+            if (match(Type.LT_EQ)) {
+                result = ConditionalExpression("<=", result, addition())
+                continue
+            }
+
+            if (match(Type.GT_EQ)) {
+                result = ConditionalExpression(">=", result, addition())
+                continue
+            }
+
+            break
+        }
+
+        return result
+    }
+
+
+    private fun addition(): Node {
+        var result = multiplication()
+
+        while (true) {
+            if (match(Type.PLUS)) {
+                result = BinaryExpression(BinaryExpression.Operator.ADD, result, multiplication())
+                continue
+            }
+
+            if (match(Type.MINUS)) {
+                result = BinaryExpression(BinaryExpression.Operator.SUBTRACT, result, multiplication())
+                continue
+            }
+
+            break
+        }
+
+        return result
+    }
+
+
+    private fun multiplication(): Node {
+        var result = unary()
+
+        while (true) {
+            if (match(Type.STAR)) {
+                result = BinaryExpression(BinaryExpression.Operator.MULTIPLY, result, unary())
+                continue
+            }
+
+            if (match(Type.SLASH)) {
+                result = BinaryExpression(BinaryExpression.Operator.DIVIDE, result, unary())
+                continue
+            }
+
+            break
+        }
+
+        return result
+    }
+
+
+    private fun unary(): Node {
+        if (match(Type.MINUS)) {
+            return UnaryExpression("-", primary())
+        }
+
+        if (match(Type.PLUS)) {
+            return primary()
+        }
+
+        return primary()
+    }
+
+
+    private fun primary(): Node {
+        if (match(Type.L_PAREN)) {
+            val result = expression()
+            consume(Type.R_PAREN)
+            return result
+        }
+
+        return variable()
+    }
+
+
+    //parse variables, arrays and function calls
+    private fun variable(): Node {
+        if (lookMatch(0, Type.WORD) && lookMatch(1, Type.L_PAREN)) {
+            return functionChain(ValueExpression(consume(Type.WORD).text))
+        }
+
+        val qualifiedName = qualifiedName()
+        if (qualifiedName != null) {
+            if (lookMatch(0, Type.L_PAREN)) {
+                return functionChain(qualifiedName)
+            }
+
+            return qualifiedName
+        }
+
+        if (lookMatch(0, Type.L_BRACKET)) {
+            return array()
+        }
+
+        return value()
+    }
+
+
+    private fun qualifiedName(): Node? {
+        val current = get(0)
+
+        if (!match(Type.WORD)) {
+            return null
+        }
+
+        val variable = VariableExpression(current.text)
+        val indices = variableSuffix()
+
+        if (indices.isEmpty()) {
+            return variable
+        }
+
+        return ContainerAccessExpression(variable, indices)
+     }
+
+
+    private fun variableSuffix(): List<Node> {
+        if (!lookMatch(0, Type.L_BRACKET) && !lookMatch(0, Type.DOT)) {
+            return emptyList()
+        }
+
+        val indices = mutableListOf<Node>()
+
+        while (lookMatch(0, Type.L_BRACKET) || lookMatch(0, Type.DOT)) {
+            when {
+                match(Type.L_BRACKET) -> {
+                    indices.add(expression())
+                    consume(Type.R_BRACKET)
+                }
+
+                match(Type.DOT) -> {
+                    val property = consume(Type.WORD)
+                    indices.add(ValueExpression(property.text))
+                }
+            }
+        }
+
+        return indices
+    }
+
+
+    //parse simple tokens like numbers and text
+    private fun value(): Node {
+        val current = get(0)
+
+        if (match(Type.NUMBER)) {
+            return ValueExpression(current.text.toInt())
+        }
+
+        if (match(Type.NUMBER_DECIMAL)) {
+            return ValueExpression(current.text.toDouble())
+        }
+
+        if (match(Type.TEXT)) {
+            val textValue = ValueExpression(current.text)
+            if (lookMatch(0, Type.DOT)) {
+                return stringProperty(textValue)
+            }
+
+            return textValue
+        }
+
+        throw RuntimeException("Unknown token $current")
+    }
+
+
+    private fun stringProperty(stringExpr: Node): Node {
+        if (lookMatch(1, Type.WORD) && lookMatch(2, Type.L_PAREN)) {
+            match(Type.DOT)
+            return functionChain(
+                ContainerAccessExpression(
+                    stringExpr,
+                    listOf(ValueExpression(consume(Type.WORD).text))
+                )
+            )
+        }
+
+        val indices = variableSuffix()
+        if (indices.isEmpty()) {
+            return stringExpr
+        }
+
+        return ContainerAccessExpression(stringExpr, indices)
+    }
+
+
+    private fun lookMatch(offset: Int, type: Type): Boolean {
+        return get(offset).type == type
+    }
+
+
+    private fun match(type: Type): Boolean {
+        if (get(0).type == type) {
+            position++
+            return true
+        }
+
+        return false
+    }
+
+
+    private fun consume(type: Type): Token {
+        val token = get(0)
+        if (token.type == type) {
+            position++
+            return token
+        }
+
+        throw RuntimeException("Unexpected token $token")
+    }
+
+
+    private fun get(relativePos: Int): Token {
+        val nextPos = position + relativePos
+        if (nextPos >= size)
+            return Token("", Type.EOF, -1, -1)
+
+        return tokens[nextPos]
+    }
+}

@@ -1,12 +1,12 @@
 package ru.kitty.parser.ast
 
-import ru.kitty.lang.NumberValue
+import ru.kitty.lang.Function
+import ru.kitty.lang.FunctionValue
 import ru.kitty.lang.ScopeHandler
-import ru.kitty.lang.UserDefinedFunction
 import ru.kitty.lang.Value
 
 class FunctionalExpression(
-    val name: String,
+    val functionExpr: Node,
     val arguments: List<Node>
 ): Node {
 
@@ -14,19 +14,15 @@ class FunctionalExpression(
         val values = mutableListOf<Value>()
         arguments.forEach { values.add(it.eval()) }
 
-        val function = ScopeHandler.getFunction(name)
-        if (function is UserDefinedFunction) {
-            ScopeHandler.push()
+        val function = consumeFunction(functionExpr.eval())
+        return function.execute(*values.toTypedArray())
+    }
 
-            for (i in 0..< function.argsCount()) {
-                ScopeHandler.declareVariableInCurrentScope(function.argName(i), values[i])
-            }
-
-            val result = function.execute(*values.toTypedArray())
-            ScopeHandler.pop()
-            return result
+    private fun consumeFunction(value: Value): Function {
+        if (value is FunctionValue) {
+            return value.value
         }
 
-        return function.execute(*values.toTypedArray())
+        return ScopeHandler.getFunction(value.asString())
     }
 }

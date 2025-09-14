@@ -11,15 +11,11 @@ class ArrayValue: Value {
         elements[index] = value
     }
 
-    fun get(index: Int): Value {
-        return elements[index]
-    }
-
     fun get(index: Value): Value {
         return when(index.asString()) {
             "size" -> NumberValue.of(size())
             "isEmpty" -> NumberValue.fromBoolean(size() == 0)
-            else -> get(index.asInt())
+            else -> elements[index.asInt()]
         }
     }
 

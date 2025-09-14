@@ -18,11 +18,20 @@ class UserDefinedFunction(
 
     override fun execute(vararg args: Value): Value {
         try {
+            ScopeHandler.push()
+
+            for (i in 0 until argsCount()) {
+                ScopeHandler.declareVariableInCurrentScope(argName(i), args[i])
+            }
+
             statement.eval()
             return NumberValue.ZERO
         }
         catch (e: ReturnStatement) {
             return e.result?.eval()?: NumberValue.ZERO
+        }
+        finally {
+            ScopeHandler.pop()
         }
     }
 }
