@@ -40,6 +40,7 @@ class Lexer(private val input: String) {
             "<=" to Type.LT_EQ,
             ">=" to Type.GT_EQ,
             "==" to Type.EQ_EQ,
+            "!" to Type.NOT,
 
             "," to Type.COMMA,
             "." to Type.DOT,
@@ -50,6 +51,7 @@ class Lexer(private val input: String) {
         private val KEYWORDS = mapOf<String, Type>(
             "and" to Type.AND,
             "or" to Type.OR,
+            "not" to Type.NOT,
             "if" to Type.IF,
             "else" to Type.ELSE,
             "meow" to Type.ECHO,

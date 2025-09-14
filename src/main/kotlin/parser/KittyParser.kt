@@ -315,7 +315,7 @@ class KittyParser private constructor(private val tokens: List<Token>){
 
         while (true) {
             if (match(Type.OR)) {
-                result = ConditionalExpression("or", result, logicalAnd())
+                result = ConditionalExpression(ConditionalExpression.Operator.OR, result, logicalAnd())
                 continue
             }
 
@@ -331,7 +331,7 @@ class KittyParser private constructor(private val tokens: List<Token>){
 
         while (true) {
             if (match(Type.AND)) {
-                result = ConditionalExpression("and", result, equality())
+                result = ConditionalExpression(ConditionalExpression.Operator.AND, result, equality())
                 continue
             }
 
@@ -347,12 +347,12 @@ class KittyParser private constructor(private val tokens: List<Token>){
 
         while (true) {
             if (match(Type.EQ_EQ)) {
-                result = ConditionalExpression("==", result, condition())
+                result = ConditionalExpression(ConditionalExpression.Operator.EQ, result, condition())
                 continue
             }
 
             if (match(Type.NOT_EQ)) {
-                result = ConditionalExpression("!=", result, condition())
+                result = ConditionalExpression(ConditionalExpression.Operator.NOT_EQ, result, condition())
                 continue
             }
 
@@ -368,22 +368,22 @@ class KittyParser private constructor(private val tokens: List<Token>){
 
         while (true) {
             if (match(Type.LT)) {
-                result = ConditionalExpression("<", result, addition())
+                result = ConditionalExpression(ConditionalExpression.Operator.LT, result, addition())
                 continue
             }
 
             if (match(Type.GT)) {
-                result = ConditionalExpression(">", result, addition())
+                result = ConditionalExpression(ConditionalExpression.Operator.GT, result, addition())
                 continue
             }
 
             if (match(Type.LT_EQ)) {
-                result = ConditionalExpression("<=", result, addition())
+                result = ConditionalExpression(ConditionalExpression.Operator.LT_EQ, result, addition())
                 continue
             }
 
             if (match(Type.GT_EQ)) {
-                result = ConditionalExpression(">=", result, addition())
+                result = ConditionalExpression(ConditionalExpression.Operator.GT_EQ, result, addition())
                 continue
             }
 
@@ -438,7 +438,11 @@ class KittyParser private constructor(private val tokens: List<Token>){
 
     private fun unary(): Node {
         if (match(Type.MINUS)) {
-            return UnaryExpression("-", primary())
+            return UnaryExpression(UnaryExpression.Operator.NEGATE, primary())
+        }
+
+        if (match(Type.NOT)) {
+            return UnaryExpression(UnaryExpression.Operator.NOT, primary())
         }
 
         if (match(Type.PLUS)) {
@@ -470,10 +474,6 @@ class KittyParser private constructor(private val tokens: List<Token>){
         if (qualifiedName != null) {
             if (lookMatch(0, Type.L_PAREN)) {
                 return functionChain(qualifiedName)
-            }
-
-            if (lookMatch(0, Type.PLUS_PLUS)) {
-                return UnaryExpression("++", qualifiedName)
             }
 
             return qualifiedName

@@ -38,6 +38,7 @@ enum class Type {
     NOT_EQ,
     AND,
     OR,
+    NOT,
 
     L_PAREN,
     R_PAREN,

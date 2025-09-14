@@ -5,23 +5,21 @@ import ru.kitty.lang.StringValue
 import ru.kitty.lang.Value
 
 class UnaryExpression(
-    val operation: String,
+    val operation: Operator,
     val expression: Node
 ): Node {
+
+    enum class Operator {
+        NEGATE,
+        NOT,
+    }
 
     override fun eval(): Value {
         val value = expression.eval()
 
         return when (operation) {
-            "-" -> negate(value)
-            "++" -> {
-                if (expression is Accessible) {
-                    return expression.set(NumberValue.of(expression.eval().asInt() + 1))
-                }
-
-                throw RuntimeException("Invalid operator")
-            }
-            else -> throw RuntimeException("Unsupported operation $operation")
+            Operator.NEGATE -> negate(value)
+            Operator.NOT -> NumberValue.fromBoolean(value.asInt() == 0)
         }
     }
 
