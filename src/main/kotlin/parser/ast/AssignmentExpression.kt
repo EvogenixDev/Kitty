@@ -6,7 +6,7 @@ class AssignmentExpression(
     val target: Accessible,
     val expression: Node,
     val operation: BinaryExpression.Operator? = null
-): Node {
+): Statement {
 
     override fun eval(): Value {
         if (operation == null) {

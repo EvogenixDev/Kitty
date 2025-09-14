@@ -14,6 +14,13 @@ class UnaryExpression(
 
         return when (operation) {
             "-" -> negate(value)
+            "++" -> {
+                if (expression is Accessible) {
+                    return expression.set(NumberValue.of(expression.eval().asInt() + 1))
+                }
+
+                throw RuntimeException("Invalid operator")
+            }
             else -> throw RuntimeException("Unsupported operation $operation")
         }
     }

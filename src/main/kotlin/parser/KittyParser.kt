@@ -269,7 +269,7 @@ class KittyParser private constructor(private val tokens: List<Token>){
             return assignment
         }
 
-        return logicalOr()
+        return ternary()
     }
 
 
@@ -293,6 +293,20 @@ class KittyParser private constructor(private val tokens: List<Token>){
 
         val operation = ASSIGN_OPERATORS[currentType]
         return AssignmentExpression(target, expression(), operation)
+    }
+
+
+    private fun ternary(): Node {
+        val condition = logicalOr()
+
+        if (match(Type.QUESTION)) {
+            val trueExpression = expression()
+            consume(Type.COLON)
+            val falseExpression = expression()
+            return TernaryExpression(condition, trueExpression, falseExpression)
+        }
+
+        return condition
     }
 
 
@@ -456,6 +470,10 @@ class KittyParser private constructor(private val tokens: List<Token>){
         if (qualifiedName != null) {
             if (lookMatch(0, Type.L_PAREN)) {
                 return functionChain(qualifiedName)
+            }
+
+            if (lookMatch(0, Type.PLUS_PLUS)) {
+                return UnaryExpression("++", qualifiedName)
             }
 
             return qualifiedName

@@ -1,2 +1,4 @@
-var text = "Text"
-meow text.substring(1, text.size).upper()
+var a = 10
+var b = 20
+
+meow a < b ? "yes" : "no"

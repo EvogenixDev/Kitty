@@ -12,15 +12,13 @@ class StringValue(private val value: String): Value {
             "lower" -> Converters.voidToString(value::lowercase)
             "reversed" -> Converters.voidToString(value::reversed)
             "trim" -> Converters.voidToString(value::trim)
-
-            "contains" -> Converters.stringToBoolean(value::contains)
-            "isEmpty" -> Converters.voidToBoolean(value::isEmpty)
-            "isNotEmpty" -> Converters.voidToBoolean(value::isNotEmpty)
-
             "substring" -> FunctionValue { args ->
                 StringValue(value.substring(args[0].asInt(), args[1].asInt()))
             }
 
+            "contains" -> Converters.stringToBoolean(value::contains)
+            "isEmpty" -> Converters.voidToBoolean(value::isEmpty)
+            "isNotEmpty" -> Converters.voidToBoolean(value::isNotEmpty)
             else -> throw RuntimeException("Unknown property $property")
         }
     }

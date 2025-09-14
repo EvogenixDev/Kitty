@@ -48,6 +48,8 @@ enum class Type {
 
     COMMA,
     DOT,
+    QUESTION,
+    COLON,
 
     EOF
 }
