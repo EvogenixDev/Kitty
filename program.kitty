@@ -1,2 +1,2 @@
-var array = [20, 45, 98]
-meow array
+var text = "Text"
+meow text.substring(1, text.size).upper()

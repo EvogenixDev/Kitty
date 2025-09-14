@@ -2,11 +2,11 @@ package ru.kitty.parser.ast
 
 import ru.kitty.lang.Value
 
-class AssignmentStatement(
+class AssignmentExpression(
     val target: Accessible,
     val expression: Node,
     val operation: BinaryExpression.Operator? = null
-): Statement {
+): Node {
 
     override fun eval(): Value {
         if (operation == null) {

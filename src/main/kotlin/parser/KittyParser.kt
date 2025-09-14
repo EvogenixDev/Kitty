@@ -97,7 +97,7 @@ class KittyParser private constructor(private val tokens: List<Token>){
             return functionCallStatement()
         }
 
-        return assignment()
+        return assignmentStatement()
     }
 
 
@@ -123,7 +123,7 @@ class KittyParser private constructor(private val tokens: List<Token>){
         val hasParen = match(Type.L_PAREN)
         val init = when (match(Type.VAR)) {
             true -> variableDeclaration()
-            false -> assignment()
+            false -> assignmentStatement()
         }
 
         consume(Type.COMMA)
@@ -131,7 +131,7 @@ class KittyParser private constructor(private val tokens: List<Token>){
         val condition = expression()
         consume(Type.COMMA)
 
-        val increment = assignment()
+        val increment = assignmentStatement()
         if (hasParen) {
             consume(Type.R_PAREN)
         }
@@ -158,7 +158,7 @@ class KittyParser private constructor(private val tokens: List<Token>){
         val result = try {
             expression()
         }
-        catch (e: Exception) {
+        catch (_: Exception) {
             null
         }
 
@@ -192,22 +192,13 @@ class KittyParser private constructor(private val tokens: List<Token>){
     }
 
 
-    private fun assignment(): AssignmentStatement {
-        val target = qualifiedName()
-
-        if (target !is Accessible) {
-            throw RuntimeException("Cannot assign $target")
+    private fun assignmentStatement(): Statement {
+        val expr = expression()
+        if (expr is Statement) {
+            return expr
         }
 
-        val currentType = get(0).type
-
-        if (!ASSIGN_OPERATORS.containsKey(currentType)) {
-            throw RuntimeException("Invalid assignment operator $currentType")
-        }
-
-        consume(currentType)
-        val operation = ASSIGN_OPERATORS[currentType]
-        return AssignmentStatement(target, expression(), operation)
+        throw RuntimeException("Unknown statement ${get(0)}")
     }
 
 
@@ -268,7 +259,40 @@ class KittyParser private constructor(private val tokens: List<Token>){
 
 
     private fun expression(): Node {
+        return assignment()
+    }
+
+
+    private fun assignment(): Node {
+        val assignment = assignmentStrict()
+        if (assignment != null) {
+            return assignment
+        }
+
         return logicalOr()
+    }
+
+
+    private fun assignmentStrict(): AssignmentExpression? {
+        val index = position
+        val target = qualifiedName()
+
+        if (target !is Accessible) {
+            position = index
+            return null
+        }
+
+        val currentType = get(0).type
+
+        if (!ASSIGN_OPERATORS.containsKey(currentType)) {
+            position = index
+            return null
+        }
+
+        match(currentType)
+
+        val operation = ASSIGN_OPERATORS[currentType]
+        return AssignmentExpression(target, expression(), operation)
     }
 
 
