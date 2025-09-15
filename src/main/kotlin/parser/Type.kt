@@ -16,6 +16,7 @@ enum class Type {
     CONTINUE,
     RETURN,
     FUNC,
+    CLASS,
 
     PLUS,
     MINUS,

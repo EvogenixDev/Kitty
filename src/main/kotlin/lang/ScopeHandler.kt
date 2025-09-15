@@ -24,6 +24,14 @@ object ScopeHandler {
         return rootScope.getFunction(name)
     }
 
+    fun setClassDeclaration(classDeclaration: ClassDeclaration) {
+        rootScope.setClassDeclaration(classDeclaration)
+    }
+
+    fun getClassDeclaration(name: String): ClassDeclaration {
+        return rootScope.getClassDeclaration(name)
+    }
+
     fun declareVariableInCurrentScope(name: String, value: Value) {
         scope.setVariable(name, value)
     }

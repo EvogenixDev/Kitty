@@ -93,6 +93,10 @@ class KittyParser private constructor(private val tokens: List<Token>){
             return functionDefine()
         }
 
+        if (match(Type.CLASS)) {
+            return classDeclaration()
+        }
+
         if (lookMatch(0, Type.WORD) && lookMatch(1, Type.L_PAREN)) {
             return functionCallStatement()
         }
@@ -189,6 +193,26 @@ class KittyParser private constructor(private val tokens: List<Token>){
 
         val statement = block()
         return FunctionDefineStatement(name, argNames, statement)
+    }
+
+
+    private fun classDeclaration(): ClassDeclarationStatement {
+        val className = consume(Type.WORD).text
+        val classDeclaration = ClassDeclarationStatement(className)
+        consume(Type.L_BRACE)
+
+        while (!lookMatch(0, Type.R_BRACE)) {
+            if (match(Type.VAR)) {
+                classDeclaration.addField(variableDeclaration())
+            }
+
+            if (match(Type.FUNC)) {
+                classDeclaration.addMethod(functionDefine())
+            }
+        }
+
+        consume(Type.R_BRACE)
+        return classDeclaration
     }
 
 

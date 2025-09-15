@@ -15,6 +15,14 @@ class ArrayValue: Value {
         return when(index.asString()) {
             "size" -> NumberValue.of(size())
             "isEmpty" -> NumberValue.fromBoolean(size() == 0)
+            "add" -> FunctionValue { args ->
+                elements.add(args[0])
+                this
+            }
+            "remove" -> FunctionValue { args ->
+                val element = elements.removeAt(args[0].asInt())
+                element
+            }
             else -> elements[index.asInt()]
         }
     }

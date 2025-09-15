@@ -8,7 +8,7 @@ import ru.kitty.lang.Value
 class FunctionalExpression(
     val functionExpr: Node,
     val arguments: List<Node>
-): Node {
+): Statement {
 
     override fun eval(): Value {
         val values = mutableListOf<Value>()

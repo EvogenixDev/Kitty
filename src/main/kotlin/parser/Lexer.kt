@@ -62,6 +62,7 @@ class Lexer(private val input: String) {
             "continue" to Type.CONTINUE,
             "return" to Type.RETURN,
             "func" to Type.FUNC,
+            "class" to Type.CLASS
         )
     }
 

@@ -22,6 +22,9 @@ class RootScope(override val parent: Scope?): Scope(parent) {
         }
     )
 
+
+    private val classDeclarations = mutableMapOf<String, ClassDeclaration>()
+
     override fun hasParent(): Boolean {
         return false
     }
@@ -36,5 +39,13 @@ class RootScope(override val parent: Scope?): Scope(parent) {
 
     fun getFunction(name: String): Function {
         return functions[name]!!
+    }
+
+    fun setClassDeclaration(clazz: ClassDeclaration) {
+        classDeclarations[clazz.className] = clazz
+    }
+
+    fun getClassDeclaration(name: String): ClassDeclaration {
+        return classDeclarations[name]!!
     }
 }
