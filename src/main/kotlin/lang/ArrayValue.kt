@@ -17,11 +17,18 @@ class ArrayValue: Value {
             "isEmpty" -> NumberValue.fromBoolean(size() == 0)
             "add" -> FunctionValue { args ->
                 elements.add(args[0])
-                this
+                NumberValue.ZERO
+            }
+            "insert" -> FunctionValue { args ->
+                elements.add(args[0].asInt(), args[1])
+                NumberValue.ZERO
             }
             "remove" -> FunctionValue { args ->
                 val element = elements.removeAt(args[0].asInt())
                 element
+            }
+            "has" -> FunctionValue { args ->
+                NumberValue.fromBoolean(elements.contains(args[0]))
             }
             else -> elements[index.asInt()]
         }

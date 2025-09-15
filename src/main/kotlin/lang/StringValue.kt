@@ -38,4 +38,9 @@ class StringValue(private val value: String): Value {
     override fun toString(): String {
         return asString()
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (other == null || other !is StringValue) return false
+        return asString() == other.asString()
+    }
 }

@@ -38,4 +38,9 @@ class NumberValue(private val value: Number): Value {
     override fun toString(): String {
         return asString()
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (other == null || other !is NumberValue) return false
+        return other.asDouble().equals(asDouble())
+    }
 }
