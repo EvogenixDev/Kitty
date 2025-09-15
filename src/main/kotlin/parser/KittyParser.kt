@@ -469,6 +469,14 @@ class KittyParser private constructor(private val tokens: List<Token>){
             return UnaryExpression(UnaryExpression.Operator.NOT, primary())
         }
 
+        if (match(Type.PLUS_PLUS)) {
+            return UnaryExpression(UnaryExpression.Operator.PREFIX_INCREMENT, primary())
+        }
+
+        if (match(Type.MINUS_MINUS)) {
+            return UnaryExpression(UnaryExpression.Operator.PREFIX_DECREMENT, primary())
+        }
+
         if (match(Type.PLUS)) {
             return primary()
         }
@@ -498,6 +506,16 @@ class KittyParser private constructor(private val tokens: List<Token>){
         if (qualifiedName != null) {
             if (lookMatch(0, Type.L_PAREN)) {
                 return functionChain(qualifiedName)
+            }
+
+            //var++
+            if (match(Type.PLUS_PLUS)) {
+                return UnaryExpression( UnaryExpression.Operator.POSTFIX_INCREMENT, qualifiedName)
+            }
+
+            //var--
+            if (match(Type.MINUS_MINUS)) {
+                return UnaryExpression( UnaryExpression.Operator.POSTFIX_DECREMENT, qualifiedName)
             }
 
             return qualifiedName

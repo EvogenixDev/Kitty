@@ -7,11 +7,15 @@ import ru.kitty.lang.Value
 class UnaryExpression(
     val operation: Operator,
     val expression: Node
-): Node {
+): Statement {
 
     enum class Operator {
         NEGATE,
         NOT,
+        PREFIX_INCREMENT,
+        PREFIX_DECREMENT,
+        POSTFIX_INCREMENT,
+        POSTFIX_DECREMENT
     }
 
     override fun eval(): Value {
@@ -20,6 +24,28 @@ class UnaryExpression(
         return when (operation) {
             Operator.NEGATE -> negate(value)
             Operator.NOT -> NumberValue.fromBoolean(value.asInt() == 0)
+            //++var
+            Operator.PREFIX_INCREMENT -> {
+                val accessible = expression as Accessible
+                return accessible.set(increment(value))
+            }
+            //--var
+            Operator.PREFIX_DECREMENT -> {
+                val accessible = expression as Accessible
+                return accessible.set(decrement(value))
+            }
+            //var++
+            Operator.POSTFIX_INCREMENT -> {
+                val accessible = expression as Accessible
+                accessible.set(increment(accessible.get()))
+                return value
+            }
+            //var--
+            Operator.POSTFIX_DECREMENT -> {
+                val accessible = expression as Accessible
+                accessible.set(decrement(value))
+                return value
+            }
         }
     }
 
@@ -38,5 +64,23 @@ class UnaryExpression(
         }
 
         throw RuntimeException("Unsupported operation for value")
+    }
+
+    private fun increment(value: Value): Value {
+        val number = value as NumberValue
+        if (number.raw() is Double) {
+            return NumberValue.of(number.asDouble() + 1)
+        }
+
+        return NumberValue.of(number.asInt() + 1)
+    }
+
+    private fun decrement(value: Value): Value {
+        val number = value as NumberValue
+        if (number.raw() is Double) {
+            return NumberValue.of(number.asDouble() - 1)
+        }
+
+        return NumberValue.of(number.asInt() - 1)
     }
 }
