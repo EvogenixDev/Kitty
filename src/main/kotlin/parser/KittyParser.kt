@@ -1,6 +1,7 @@
 package ru.kitty.parser
 
 import ru.kitty.parser.ast.*
+import ru.kitty.parser.util.Pos
 
 class KittyParser private constructor(private val tokens: List<Token>){
     companion object {
@@ -667,7 +668,7 @@ class KittyParser private constructor(private val tokens: List<Token>){
     private fun get(relativePos: Int): Token {
         val nextPos = position + relativePos
         if (nextPos >= size)
-            return Token("", Type.EOF, -1, -1)
+            return Token("", Type.EOF, Pos(-1, -1))
 
         return tokens[nextPos]
     }

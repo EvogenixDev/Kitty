@@ -8,6 +8,7 @@ import kotlin.io.path.Path
 fun main() {
     val code = Files.readString(Path("program.kitty"))
     val tokens = Lexer(code).tokenize()
-    val program = KittyParser.create(tokens).parse()
-    program.eval()
+//    val program = KittyParser.create(tokens).parse()
+//    program.eval()
+    tokens.forEach { println(it) }
 }

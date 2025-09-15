@@ -1,4 +1,2 @@
-
-var map2 = {"pos": [100, 200], "size": [64, 128]}
-map2.set("pos", [120, 240])
-meow map2
+/*var text = "hello"
+meow text

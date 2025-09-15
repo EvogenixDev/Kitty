@@ -19,7 +19,7 @@ class StringValue(private val value: String): Value {
             "contains" -> Converters.stringToBoolean(value::contains)
             "isEmpty" -> Converters.voidToBoolean(value::isEmpty)
             "isNotEmpty" -> Converters.voidToBoolean(value::isNotEmpty)
-            else -> throw RuntimeException("Unknown property $property")
+            else -> StringValue(value[propertyValue.asInt()].toString())
         }
     }
 

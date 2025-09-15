@@ -1,5 +1,9 @@
 package ru.kitty.parser
 
+import ru.kitty.parser.util.Pos
+import kotlin.math.PI
+import kotlin.math.max
+
 class Lexer(private val input: String) {
     private val length = input.length
     private val tokens = mutableListOf<Token>()
@@ -10,7 +14,6 @@ class Lexer(private val input: String) {
     private var row = 1
     //столбец
     private var col = 1
-
 
     companion object {
         private const val OPERATOR_CHARS = "+-*/<>!=(){}[],.?:"
@@ -87,6 +90,7 @@ class Lexer(private val input: String) {
         var current = peekChar(0)
         val buffer = StringBuilder()
         var hasDot = false
+        val startPos = markStartPos()
 
         while (true) {
             if (current == '.') {
@@ -113,13 +117,14 @@ class Lexer(private val input: String) {
             throw RuntimeException("Invalid double number. Ends with dot")
         }
 
-        addToken(if (hasDot) Type.NUMBER_DECIMAL else Type.NUMBER, text)
+        addToken(if (hasDot) Type.NUMBER_DECIMAL else Type.NUMBER, text, startPos)
     }
 
 
     private fun tokenizeWord() {
         var current = peekChar(0)
         val buffer = StringBuilder()
+        val startPos = markStartPos()
 
         while (current.isLetterOrDigit() || current == '_') {
             buffer.append(current)
@@ -128,14 +133,15 @@ class Lexer(private val input: String) {
 
         val text = buffer.toString()
         if (isKeyword(text)) {
-            addToken(KEYWORDS[text]!!)
+            addToken(KEYWORDS[text]!!, startPos)
         } else {
-            addToken(Type.WORD, text)
+            addToken(Type.WORD, text, startPos)
         }
     }
 
 
     private fun tokenizeText() {
+        val startPos = markStartPos()
         skipChar()
 
         var current = peekChar(0)
@@ -169,24 +175,70 @@ class Lexer(private val input: String) {
         }
 
         skipChar()
-        addToken(Type.TEXT, buffer.toString())
+        addToken(Type.TEXT, buffer.toString(), startPos)
     }
 
 
     private fun tokenizeOperator() {
         var current = peekChar(0)
+
+        if (current == '/') {
+            if (peekChar(1) == '/') {
+                tokenizeComment()
+                return
+            }
+
+            if (peekChar(1) == '*') {
+                tokenizeMultilineComment()
+                return
+            }
+        }
+
         val buffer = StringBuilder()
+        val startPos = markStartPos()
 
         while (true) {
             val text = buffer.toString()
             if (text.isNotEmpty() && !OPERATORS.containsKey(text + current)) {
-                addToken(OPERATORS[text]!!)
+                addToken(OPERATORS[text]!!, startPos)
                 break
             }
 
             buffer.append(current)
             current = nextChar()
         }
+    }
+
+
+    private fun tokenizeComment() {
+        skipChar()
+        skipChar()
+
+        var current = peekChar(0)
+
+        while ("\r\n\u0000".indexOf(current) == -1) {
+            current = nextChar()
+        }
+    }
+
+
+    private fun tokenizeMultilineComment() {
+        val startPos = markStartPos()
+        skipChar()
+        skipChar()
+
+        var current = peekChar(0)
+
+        while (current != '*' || peekChar(1) != '/') {
+            if (current == '\u0000') {
+                throw RuntimeException("Reached end of file while parsing multiline comment, $startPos, ${markEndPos()}")
+            }
+
+            current = nextChar()
+        }
+
+        skipChar()
+        skipChar()
     }
 
 
@@ -232,12 +284,22 @@ class Lexer(private val input: String) {
     }
 
 
-    private fun addToken(type: Type) {
-        addToken(type, "")
+    private fun addToken(type: Type, pos: Pos) {
+        addToken(type, "", pos)
     }
 
 
-    private fun addToken(type: Type, text: String) {
-        tokens.add(Token(text, type, row, col))
+    private fun addToken(type: Type, text: String, pos: Pos) {
+        tokens.add(Token(text, type, pos))
+    }
+
+
+    private fun markStartPos(): Pos {
+        return Pos(row, col)
+    }
+
+
+    private fun markEndPos(): Pos {
+        return Pos(row, max(0, col - 1))
     }
 }
