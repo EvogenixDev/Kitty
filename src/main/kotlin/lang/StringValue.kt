@@ -39,6 +39,10 @@ class StringValue(private val value: String): Value {
         return asString()
     }
 
+    override fun hashCode(): Int {
+        return value.hashCode()
+    }
+
     override fun equals(other: Any?): Boolean {
         if (other == null || other !is StringValue) return false
         return asString() == other.asString()

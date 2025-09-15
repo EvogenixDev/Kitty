@@ -1,6 +1,7 @@
 package ru.kitty.parser.ast
 
 import ru.kitty.lang.ArrayValue
+import ru.kitty.lang.MapValue
 import ru.kitty.lang.StringValue
 import ru.kitty.lang.Value
 
@@ -14,15 +15,26 @@ class ContainerAccessExpression(
     }
 
     override fun set(value: Value): Value {
+        val container = target.eval()
+
+        if (container is MapValue) {
+            container.set(lastIndex(), value)
+            return value
+        }
+
         val array = getArray()
         array.set(lastIndex().asInt(), value)
         return value
     }
 
     override fun get(): Value {
-        val value = target.eval()
-        if (value is StringValue) {
-            return value.access(lastIndex())
+        val container = target.eval()
+        if (container is StringValue) {
+            return container.access(lastIndex())
+        }
+
+        if (container is MapValue) {
+            return container.get(lastIndex())
         }
 
         return getArray().get(lastIndex())

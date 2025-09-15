@@ -282,6 +282,23 @@ class KittyParser private constructor(private val tokens: List<Token>){
     }
 
 
+    private fun map(): MapExpression {
+        val map = MapExpression()
+        consume(Type.L_BRACE)
+
+        while (!lookMatch(0, Type.R_BRACE)) {
+            val key = expression()
+            consume(Type.COLON)
+            val value = expression()
+            map.add(key, value)
+            match(Type.COMMA)
+        }
+
+        consume(Type.R_BRACE)
+        return map
+    }
+
+
     private fun expression(): Node {
         return assignment()
     }
@@ -523,6 +540,10 @@ class KittyParser private constructor(private val tokens: List<Token>){
 
         if (lookMatch(0, Type.L_BRACKET)) {
             return array()
+        }
+
+        if (lookMatch(0, Type.L_BRACE)) {
+            return map()
         }
 
         return value()
