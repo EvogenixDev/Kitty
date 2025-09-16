@@ -1,7 +1,7 @@
 package ru.kitty.parser
 
+import ru.kitty.parser.exception.ParseException
 import ru.kitty.parser.util.Pos
-import kotlin.math.PI
 import kotlin.math.max
 
 class Lexer(private val input: String) {
@@ -16,7 +16,7 @@ class Lexer(private val input: String) {
     private var col = 1
 
     companion object {
-        private const val OPERATOR_CHARS = "+-*/<>!=(){}[],.?:"
+        private const val OPERATOR_CHARS = "+-*/<>!=(){}[],.?:#"
         private val OPERATORS = mapOf<String, Type>(
             "+" to Type.PLUS,
             "-" to Type.MINUS,
@@ -95,7 +95,7 @@ class Lexer(private val input: String) {
         while (true) {
             if (current == '.') {
                 if (hasDot) {
-                    throw RuntimeException("Invalid double number. Multiple dots")
+                    throw error("Syntax error at line $row: Invalid number")
                 }
 
                 hasDot = true
@@ -114,7 +114,7 @@ class Lexer(private val input: String) {
 
         val text = buffer.toString()
         if (text.endsWith(".")) {
-            throw RuntimeException("Invalid double number. Ends with dot")
+            throw error("Syntax error at line $row: Invalid number")
         }
 
         addToken(if (hasDot) Type.NUMBER_DECIMAL else Type.NUMBER, text, startPos)
@@ -151,14 +151,13 @@ class Lexer(private val input: String) {
             if (current == '\\') {
                 current = nextChar()
 
-                when {
-                    current == '"' -> {
+                when (current) {
+                    '"' -> {
                         buffer.append('"')
                         current = nextChar()
                         continue
                     }
-
-                    current == 'n' -> {
+                    'n' -> {
                         buffer.append('\n')
                         current = nextChar()
                         continue
@@ -182,16 +181,9 @@ class Lexer(private val input: String) {
     private fun tokenizeOperator() {
         var current = peekChar(0)
 
-        if (current == '/') {
-            if (peekChar(1) == '/') {
-                tokenizeComment()
-                return
-            }
-
-            if (peekChar(1) == '*') {
-                tokenizeMultilineComment()
-                return
-            }
+        if (current == '#') {
+            tokenizeComment()
+            return
         }
 
         val buffer = StringBuilder()
@@ -211,34 +203,13 @@ class Lexer(private val input: String) {
 
 
     private fun tokenizeComment() {
-        skipChar()
-        skipChar()
+        skipChar()//skip #
 
         var current = peekChar(0)
 
         while ("\r\n\u0000".indexOf(current) == -1) {
             current = nextChar()
         }
-    }
-
-
-    private fun tokenizeMultilineComment() {
-        val startPos = markStartPos()
-        skipChar()
-        skipChar()
-
-        var current = peekChar(0)
-
-        while (current != '*' || peekChar(1) != '/') {
-            if (current == '\u0000') {
-                throw RuntimeException("Reached end of file while parsing multiline comment, $startPos, ${markEndPos()}")
-            }
-
-            current = nextChar()
-        }
-
-        skipChar()
-        skipChar()
     }
 
 
@@ -301,5 +272,10 @@ class Lexer(private val input: String) {
 
     private fun markEndPos(): Pos {
         return Pos(row, max(0, col - 1))
+    }
+
+
+    private fun error(message: String): ParseException {
+        return ParseException(message)
     }
 }

@@ -1,2 +1,3 @@
-/*var text = "hello"
-meow text
+#Hello World program
+
+meow "Hello World"

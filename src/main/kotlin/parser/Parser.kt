@@ -3,11 +3,11 @@ package ru.kitty.parser
 import ru.kitty.parser.ast.*
 import ru.kitty.parser.util.Pos
 
-class KittyParser private constructor(private val tokens: List<Token>){
+class Parser private constructor(private val tokens: List<Token>){
     companion object {
 
-        fun create(tokens: List<Token>): KittyParser {
-            return KittyParser(tokens)
+        fun create(tokens: List<Token>): Parser {
+            return Parser(tokens)
         }
 
         private val ASSIGN_OPERATORS = mapOf<Type, BinaryExpression.Operator?>(

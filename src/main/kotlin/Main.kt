@@ -1,6 +1,5 @@
 package ru.kitty
 
-import ru.kitty.parser.KittyParser
 import ru.kitty.parser.Lexer
 import java.nio.file.Files
 import kotlin.io.path.Path
