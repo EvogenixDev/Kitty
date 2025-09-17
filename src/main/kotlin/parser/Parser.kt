@@ -200,17 +200,22 @@ class Parser private constructor(private val tokens: List<Token>){
     private fun classDeclaration(): ClassDeclarationStatement {
         val name = consume(Type.WORD).text
         val variables = mutableListOf<VariableDeclarationStatement>()
+        val methods = mutableListOf<FunctionDefineStatement>()
         consume(Type.L_BRACE)
 
         while (!lookMatch(0, Type.R_BRACE)) {
             if (match(Type.VAR)) {
                 variables.add(variableDeclaration())
             }
+
+            if (match(Type.FUNC)) {
+                methods.add(functionDefine())
+            }
         }
 
         consume(Type.R_BRACE)
 
-        val clazz = ClassDeclarationStatement(name, variables)
+        val clazz = ClassDeclarationStatement(name, variables, methods)
         return clazz
     }
 

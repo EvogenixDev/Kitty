@@ -9,6 +9,11 @@ class ClassInstance: Value {
         map.set(field.name, field.expr.eval())
     }
 
+    fun addMethod(method: ClassMethod) {
+        val m = ClassMethod(method.name, method.function, this)
+        map.set(m.name, m)
+    }
+
     fun access(property: Value): Value {
         return map.get(property)
     }

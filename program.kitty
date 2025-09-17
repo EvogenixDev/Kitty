@@ -3,8 +3,8 @@ class Entity {
     var y = 90
 
     func sayValues() {
-        meow x
-        meow y
+        meow self.x
+        meow self.y
     }
 }
 
