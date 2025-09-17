@@ -17,6 +17,7 @@ enum class Type {
     RETURN,
     FUNC,
     CLASS,
+    NEW,
 
     PLUS,
     MINUS,

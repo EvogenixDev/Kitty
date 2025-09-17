@@ -1,3 +1,12 @@
-#Hello World program
+class Entity {
+    var x = 30
+    var y = 90
 
-meow "Hello World"
+    func sayValues() {
+        meow x
+        meow y
+    }
+}
+
+var entity = new Entity()
+entity.sayValues()

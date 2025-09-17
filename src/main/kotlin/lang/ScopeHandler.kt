@@ -16,6 +16,16 @@ object ScopeHandler {
         scope = scope.parent?: rootScope
     }
 
+    fun closeableScope(block : () -> Unit) {
+        try {
+            push()
+            block()
+        }
+        finally {
+            pop()
+        }
+    }
+
     fun setFunction(name: String, function: Function) {
         rootScope.setFunction(name, function)
     }

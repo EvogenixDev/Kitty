@@ -1,6 +1,7 @@
 package ru.kitty.parser.ast
 
 import ru.kitty.lang.ArrayValue
+import ru.kitty.lang.ClassInstance
 import ru.kitty.lang.MapValue
 import ru.kitty.lang.StringValue
 import ru.kitty.lang.Value
@@ -22,6 +23,11 @@ class ContainerAccessExpression(
             return value
         }
 
+        if (container is ClassInstance) {
+            container.set(lastIndex(), value)
+            return value
+        }
+
         val array = getArray()
         array.set(lastIndex().asInt(), value)
         return value
@@ -35,6 +41,10 @@ class ContainerAccessExpression(
 
         if (container is MapValue) {
             return container.get(lastIndex())
+        }
+
+        if (container is ClassInstance) {
+            return container.access(lastIndex())
         }
 
         return getArray().get(lastIndex())

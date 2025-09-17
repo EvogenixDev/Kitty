@@ -42,7 +42,7 @@ class RootScope(override val parent: Scope?): Scope(parent) {
     }
 
     fun setClassDeclaration(clazz: ClassDeclaration) {
-        classDeclarations[clazz.className] = clazz
+        classDeclarations[clazz.name] = clazz
     }
 
     fun getClassDeclaration(name: String): ClassDeclaration {

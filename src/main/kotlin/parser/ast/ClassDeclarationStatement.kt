@@ -1,32 +1,23 @@
 package ru.kitty.parser.ast
 
+import ru.kitty.lang.ClassDeclaration
 import ru.kitty.lang.ClassField
-import ru.kitty.lang.ClassMethod
 import ru.kitty.lang.NumberValue
-import ru.kitty.lang.UserDefinedFunction
+import ru.kitty.lang.ScopeHandler
 import ru.kitty.lang.Value
 
-class ClassDeclarationStatement(val className: String): Statement {
-    val fields = mutableListOf<VariableDeclarationStatement>()
-    val methods = mutableListOf<FunctionDefineStatement>()
-
-    fun addField(field: VariableDeclarationStatement) {
-        fields.add(field)
-    }
-
-    fun addMethod(method: FunctionDefineStatement) {
-        methods.add(method)
-    }
+class ClassDeclarationStatement(
+    val name: String,
+    val fields: List<VariableDeclarationStatement>,
+    //val methods: List<FunctionDefineStatement>
+): Statement {
 
     override fun eval(): Value {
-        val classFields = fields.map {
-            ClassField(it.name)
-        }
+        val classFields = mutableListOf<ClassField>()
+        fields.forEach { classFields.add(ClassField(it.name, it.expression)) }
 
-        val classMethods = methods.map {
-            ClassMethod(it.name, UserDefinedFunction(it.argNames, it.statement))
-        }
-
+        val clazz = ClassDeclaration(name, classFields)
+        ScopeHandler.setClassDeclaration(clazz)
         return NumberValue.ZERO
     }
 }

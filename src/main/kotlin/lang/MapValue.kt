@@ -7,6 +7,14 @@ class MapValue: Value {
         map[key] = value
     }
 
+    fun set(key: String, value: Value) {
+        set(StringValue(key), value)
+    }
+
+    fun set(key: String, function: Function) {
+        set(StringValue(key), FunctionValue(function))
+    }
+
     fun get(index: Value): Value {
         return when(index.asString()) {
             "size" -> NumberValue.of(map.size)

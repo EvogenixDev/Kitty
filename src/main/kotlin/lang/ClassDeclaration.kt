@@ -1,9 +1,16 @@
 package ru.kitty.lang
 
 class ClassDeclaration(
-    val className: String,
-    val fields: List<ClassField>,
-    val methods: List<ClassMethod>
+    val name: String,
+    val classFields: List<ClassField>
 ) {
 
+    fun newInstance(vararg args: Value): ClassInstance {
+        val instance = ClassInstance()
+        classFields.forEach {
+            instance.addField(it)
+        }
+
+        return instance
+    }
 }

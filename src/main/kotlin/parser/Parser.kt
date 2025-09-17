@@ -198,22 +198,20 @@ class Parser private constructor(private val tokens: List<Token>){
 
 
     private fun classDeclaration(): ClassDeclarationStatement {
-        val className = consume(Type.WORD).text
-        val classDeclaration = ClassDeclarationStatement(className)
+        val name = consume(Type.WORD).text
+        val variables = mutableListOf<VariableDeclarationStatement>()
         consume(Type.L_BRACE)
 
         while (!lookMatch(0, Type.R_BRACE)) {
             if (match(Type.VAR)) {
-                classDeclaration.addField(variableDeclaration())
-            }
-
-            if (match(Type.FUNC)) {
-                classDeclaration.addMethod(functionDefine())
+                variables.add(variableDeclaration())
             }
         }
 
         consume(Type.R_BRACE)
-        return classDeclaration
+
+        val clazz = ClassDeclarationStatement(name, variables)
+        return clazz
     }
 
 
@@ -458,16 +456,16 @@ class Parser private constructor(private val tokens: List<Token>){
 
 
     private fun multiplication(): Node {
-        var result = unary()
+        var result = objectCreation()
 
         while (true) {
             if (match(Type.STAR)) {
-                result = BinaryExpression(BinaryExpression.Operator.MULTIPLY, result, unary())
+                result = BinaryExpression(BinaryExpression.Operator.MULTIPLY, result, objectCreation())
                 continue
             }
 
             if (match(Type.SLASH)) {
-                result = BinaryExpression(BinaryExpression.Operator.DIVIDE, result, unary())
+                result = BinaryExpression(BinaryExpression.Operator.DIVIDE, result, objectCreation())
                 continue
             }
 
@@ -475,6 +473,18 @@ class Parser private constructor(private val tokens: List<Token>){
         }
 
         return result
+    }
+
+
+    private fun objectCreation(): Node {
+        if (match(Type.NEW)) {
+            val className = consume(Type.WORD).text
+            consume(Type.L_PAREN)
+            consume(Type.R_PAREN)
+            return ObjectCreationExpression(className)
+        }
+
+        return unary()
     }
 
 
