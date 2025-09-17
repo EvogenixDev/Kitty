@@ -10,5 +10,4 @@ fun main() {
     val tokens = Lexer(code).tokenize()
     val program = Parser.create(tokens).parse()
     program.eval()
-    //tokens.forEach { println(it) }
 }

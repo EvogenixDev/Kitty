@@ -39,6 +39,10 @@ class MapValue: Value {
         }
     }
 
+    fun raw(): Map<Value, Value> {
+        return map
+    }
+
     override fun asInt(): Int {
         throw RuntimeException("Cannot cast map to int")
     }

@@ -11,6 +11,9 @@ class ClassMethod(
             ScopeHandler.push()
             if (classInstance != null) {
                 ScopeHandler.declareVariableInCurrentScope("self", classInstance.map)
+                classInstance.map.raw().forEach {
+                    ScopeHandler.declareVariableInCurrentScope(it.key.asString(), it.value)
+                }
             }
 
             return function.execute(*args)
